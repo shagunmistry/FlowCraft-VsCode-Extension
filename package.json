@@ -2,6 +2,7 @@
   "name": "flowcraft",
   "displayName": "FlowCraft",
   "description": "Turn code into diagrams using FlowCraft",
+  "publisher": "FlowCraft",
   "repository": {
     "type": "git",
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"

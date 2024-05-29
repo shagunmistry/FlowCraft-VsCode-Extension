@@ -1,6 +1,6 @@
 {
   "name": "flowcraft",
-  "displayName": "FlowCraf - Code to Diagram",
+  "displayName": "FlowCraft - Code to Diagram",
   "description": "Turn code into diagrams using FlowCraft & AI",
   "publisher": "FlowCraft",
   "repository": {
@@ -8,7 +8,7 @@
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "engines": {
     "vscode": "^1.88.0"
   },
@@ -37,6 +37,14 @@
       {
         "command": "flowcraft.generateFlowDiagramFromSelection",
         "title": "FlowCraft: Generate Flow Diagram for Selection"
+      },
+      {
+        "command": "flowcraft.generateClassDiagram",
+        "title": "FlowCraft: Generate Class Diagram for Current File"
+      },
+      {
+        "command": "flowcraft.generateClassDiagramFromSelection",
+        "title": "FlowCraft: Generate Class Diagram for Selection"
       }
     ]
   },

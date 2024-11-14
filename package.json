@@ -8,9 +8,9 @@
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "1.0.5",
+  "version": "1.2.0",
   "engines": {
-    "vscode": "^1.88.0"
+    "vscode": "^1.22.0"
   },
   "categories": [
     "Visualization"
@@ -45,6 +45,45 @@
       {
         "command": "flowcraft.generateClassDiagramFromSelection",
         "title": "FlowCraft: Generate Class Diagram for Selection"
+      },
+      {
+        "command": "flowcraft.resetApiKey",
+        "title": "FlowCraft: Reset OpenAI API Key"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "flowcraft.diagramAssistant",
+        "name": "flowcraft",
+        "fullName": "FlowCraft Diagram Assistant",
+        "description": "Generate and explain different types of diagrams based on your code",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "flowchart",
+            "description": "Generate a Flowchart Diagram"
+          },
+          {
+            "name": "sequence",
+            "description": "Generate a Sequence Diagram"
+          },
+          {
+            "name": "classDiagram",
+            "description": "Generate a Class Diagram"
+          },
+          {
+            "name": "stateDiagram",
+            "description": "Generate a State Diagram"
+          },
+          {
+            "name": "erDiagram",
+            "description": "Generate an ER Diagram"
+          },
+          {
+            "name": "explainDiagram",
+            "description": "Get an explanation of the generated diagram"
+          }
+        ]
       }
     ]
   },
@@ -57,14 +96,16 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.88.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
-    "eslint": "^8.57.0",
-    "typescript": "^5.3.3",
     "@vscode/test-cli": "^0.0.8",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/vscode": "^1.95.0"
   }
 }

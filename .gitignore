@@ -5,3 +5,5 @@ node_modules
 *.vsix
 pnpm-lock.yaml
 .env
+.vscode/
+._.*

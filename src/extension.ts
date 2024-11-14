@@ -1,8 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { ChatParticipant, ChatRequest } from "vscode";
+import FlowCraftChatParticipant from "./ChatParticipantHandler";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
+const OPENAI_KEY_SECRET = "flowcraft.openai.key";
 
 const GENERATE_FLOW_DIAGRAM = "flowcraft.generateFlowDiagram";
 const GENERATE_SELECTION_FLOW_DIAGRAM =
@@ -34,12 +37,68 @@ async function getCurrentOpenFileText() {
   return text;
 }
 
+async function getOpenAIKey(
+  context: vscode.ExtensionContext
+): Promise<string | undefined> {
+  return await context.secrets.get(OPENAI_KEY_SECRET);
+}
+
+async function promptForOpenAIKey(
+  context: vscode.ExtensionContext
+): Promise<string | undefined> {
+  const apiKey = await vscode.window.showInputBox({
+    prompt: "Please enter your OpenAI API key (starts with 'sk-')",
+    placeHolder: "sk-...",
+    password: true,
+    ignoreFocusOut: true,
+    validateInput: (value: string) => {
+      if (!value.startsWith("sk-")) {
+        return 'OpenAI API key should start with "sk-"';
+      }
+      if (value.length < 20) {
+        return "Invalid API key length";
+      }
+      return null;
+    },
+  });
+
+  if (apiKey) {
+    await context.secrets.store(OPENAI_KEY_SECRET, apiKey);
+    return apiKey;
+  }
+  return undefined;
+}
+
+async function ensureOpenAIKey(
+  context: vscode.ExtensionContext
+): Promise<string | undefined> {
+  let apiKey = await getOpenAIKey(context);
+
+  if (!apiKey) {
+    apiKey = await promptForOpenAIKey(context);
+  }
+
+  return apiKey;
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "flowcraft" is now active!');
+
+  const chatParticipant = new FlowCraftChatParticipant();
+
+  let resetKeyCommand = vscode.commands.registerCommand(
+    "flowcraft.resetApiKey",
+    async () => {
+      await context.secrets.delete(OPENAI_KEY_SECRET);
+      vscode.window.showInformationMessage(
+        "API key has been reset. You will be prompted for a new key on next use."
+      );
+    }
+  );
 
   let generateFlowDiagramDisposable = vscode.commands.registerCommand(
     GENERATE_FLOW_DIAGRAM,
@@ -52,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
         },
         (progress, _token) => {
           progress.report({ increment: 0 });
-          return new Promise<void>((resolve) => {
+          return new Promise<void>(async (resolve) => {
             const activeEditor = vscode.window.activeTextEditor;
             if (!activeEditor) {
               vscode.window.showErrorMessage(
@@ -93,10 +152,19 @@ export function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
+            const apiKey = await ensureOpenAIKey(context);
+            if (!apiKey) {
+              vscode.window.showErrorMessage(
+                "FlowCraft needs an OpenAI API key to function."
+              );
+              return;
+            }
+
             fetch(`${flowCraftApiUrl}/diagrams/generate`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "X-OpenAI-Key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -165,7 +233,7 @@ export function activate(context: vscode.ExtensionContext) {
         },
         (progress, _token) => {
           progress.report({ increment: 0 });
-          return new Promise<void>((resolve) => {
+          return new Promise<void>(async (resolve) => {
             const activeEditor = vscode.window.activeTextEditor;
             if (!activeEditor) {
               vscode.window.showErrorMessage(
@@ -199,10 +267,19 @@ export function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
+            const apiKey = await ensureOpenAIKey(context);
+            if (!apiKey) {
+              vscode.window.showErrorMessage(
+                "FlowCraft needs an OpenAI API key to function."
+              );
+              return;
+            }
+
             fetch(`${flowCraftApiUrl}/diagrams/generate`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "X-OpenAI-Key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -289,10 +366,19 @@ export function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
+            const apiKey = await ensureOpenAIKey(context);
+            if (!apiKey) {
+              vscode.window.showErrorMessage(
+                "FlowCraft needs an OpenAI API key to function."
+              );
+              return;
+            }
+
             fetch(`${flowCraftApiUrl}/diagrams/generate`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "X-OpenAI-Key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -380,10 +466,19 @@ export function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
+            const apiKey = await ensureOpenAIKey(context);
+            if (!apiKey) {
+              vscode.window.showErrorMessage(
+                "FlowCraft needs an OpenAI API key to function."
+              );
+              return;
+            }
+
             fetch(`${flowCraftApiUrl}/diagrams/generate`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "X-OpenAI-Key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -437,10 +532,17 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const chatHandler = vscode.chat.createChatParticipant(
+    "flowcraft.diagramAssistant",
+    chatParticipant.handleRequest
+  );
+
   context.subscriptions.push(generateFlowDiagramDisposable);
   context.subscriptions.push(generateSelectionDiagramDisposable);
   context.subscriptions.push(generateClassDiagramDisposable);
   context.subscriptions.push(generateSelectionClassDiagramDisposable);
+  context.subscriptions.push(resetKeyCommand);
+  context.subscriptions.push(chatHandler);
 }
 
 // This method is called when your extension is deactivated

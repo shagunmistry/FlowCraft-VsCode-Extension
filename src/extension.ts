@@ -3,10 +3,12 @@ import FlowCraftChatParticipant from "./ChatParticipantHandler";
 import { StateManager } from "./state/state-manager";
 import { APIKeyService } from "./services/api-key-service";
 import { UsageService } from "./services/usage-service";
+import { DiagramService } from "./services/diagram-service";
 import { FlowCraftClient } from "./api/flowcraft-client";
 import { WelcomeViewProvider } from "./views/welcome-view";
 import { SettingsViewProvider } from "./views/settings-view";
 import { initLogger } from "./utils/logger";
+import { Provider } from "./types";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
 const OPENAI_KEY_SECRET = "flowcraft.openai.key";
@@ -42,13 +44,13 @@ async function getCurrentOpenFileText() {
 }
 
 async function getOpenAIKey(
-  context: vscode.ExtensionContext
+  apiKeyService: APIKeyService
 ): Promise<string | undefined> {
-  return await context.secrets.get(OPENAI_KEY_SECRET);
+  return await apiKeyService.retrieve(Provider.OpenAI);
 }
 
 async function promptForOpenAIKey(
-  context: vscode.ExtensionContext
+  apiKeyService: APIKeyService
 ): Promise<string | undefined> {
   const apiKey = await vscode.window.showInputBox({
     prompt: "Please enter your OpenAI API key (starts with 'sk-')",
@@ -67,19 +69,19 @@ async function promptForOpenAIKey(
   });
 
   if (apiKey) {
-    await context.secrets.store(OPENAI_KEY_SECRET, apiKey);
+    await apiKeyService.store(Provider.OpenAI, apiKey);
     return apiKey;
   }
   return undefined;
 }
 
 async function ensureOpenAIKey(
-  context: vscode.ExtensionContext
+  apiKeyService: APIKeyService
 ): Promise<string | undefined> {
-  let apiKey = await getOpenAIKey(context);
+  let apiKey = await getOpenAIKey(apiKeyService);
 
   if (!apiKey) {
-    apiKey = await promptForOpenAIKey(context);
+    apiKey = await promptForOpenAIKey(apiKeyService);
   }
 
   return apiKey;
@@ -93,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "flowcraft" is now active!');
 
   // Initialize Logger
-  initLogger('FlowCraft');
+  initLogger("FlowCraft");
 
   // Initialize Core Services
   const stateManager = new StateManager(context);
@@ -101,20 +103,39 @@ export async function activate(context: vscode.ExtensionContext) {
   await apiKeyService.migrateOldKeys(); // Migrate legacy keys
 
   const apiClient = new FlowCraftClient({
-    baseURL: process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL
+    baseURL: process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL,
   });
 
   const usageService = new UsageService(apiClient, stateManager, apiKeyService);
-
-  // Initialize View Providers
-  const welcomeProvider = new WelcomeViewProvider(context.extensionUri, stateManager, usageService);
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(WelcomeViewProvider.viewType, welcomeProvider)
+  const diagramService = new DiagramService(
+    apiClient,
+    stateManager,
+    apiKeyService
   );
 
-  const settingsProvider = new SettingsViewProvider(context.extensionUri, stateManager, apiKeyService);
+  // Initialize View Providers
+  const welcomeProvider = new WelcomeViewProvider(
+    context.extensionUri,
+    stateManager,
+    usageService
+  );
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(SettingsViewProvider.viewType, settingsProvider)
+    vscode.window.registerWebviewViewProvider(
+      WelcomeViewProvider.viewType,
+      welcomeProvider
+    )
+  );
+
+  const settingsProvider = new SettingsViewProvider(
+    context.extensionUri,
+    stateManager,
+    apiKeyService
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      SettingsViewProvider.viewType,
+      settingsProvider
+    )
   );
 
   const chatParticipant = new FlowCraftChatParticipant();
@@ -133,8 +154,312 @@ export async function activate(context: vscode.ExtensionContext) {
     "flowcraft.openSettings",
     async () => {
       // Focus the settings view
-      await vscode.commands.executeCommand('flowcraft.settingsView.focus');
+      await vscode.commands.executeCommand("flowcraft.settingsView.focus");
     }
+  );
+
+  let openGenerationViewCommand = vscode.commands.registerCommand(
+    "flowcraft.openGenerationView",
+    async (type?: string) => {
+      if (type === "infographic") {
+        vscode.window.showInformationMessage(
+          "Infographic generation coming soon!"
+        );
+      } else if (type === "image") {
+        vscode.window.showInformationMessage("Image generation coming soon!");
+      } else {
+        // Show diagram type selection
+        const diagramTypes = [
+          "FlowChart",
+          "Sequence Diagram",
+          "Class Diagram",
+          "State Diagram",
+          "Entity Relationship Diagram",
+          "User Journey",
+          "Gantt",
+          "Pie Chart",
+          "Quadrant Chart",
+          "Requirement Diagram",
+          "Gitgraph (Git) Diagram",
+          "Mindmaps",
+          "Timeline",
+          "Zenuml",
+          "Sankey",
+          "Treemap",
+        ];
+
+        const selectedType = await vscode.window.showQuickPick(diagramTypes, {
+          placeHolder: "Select diagram type to generate",
+        });
+
+        if (!selectedType) {
+          return;
+        }
+
+        // Map display names to DiagramType enum values
+
+        // Ask for code input method
+        const inputMethods = [
+          {
+            label: "Paste Code",
+            description: "Paste code or description directly",
+          },
+          {
+            label: "Select File",
+            description: "Choose a file from your workspace",
+          },
+          {
+            label: "Use Current Selection",
+            description: "Use selected text from the active editor",
+          },
+          {
+            label: "Use Current File",
+            description: "Use entire content of the active file",
+          },
+        ];
+
+        const inputMethod = await vscode.window.showQuickPick(inputMethods, {
+          placeHolder: "How would you like to provide the code/description?",
+        });
+
+        if (!inputMethod) {
+          return;
+        }
+
+        let codeContent = "";
+
+        // Get code based on selection
+        if (inputMethod.label === "Paste Code") {
+          const pastedCode = await vscode.window.showInputBox({
+            prompt: `Paste your code or description for the ${selectedType}`,
+            placeHolder: "Paste code here...",
+            ignoreFocusOut: true,
+            validateInput: (value: string) => {
+              if (!value || value.trim().length === 0) {
+                return "Please provide some code or description";
+              }
+              if (value.length > 10000) {
+                return "Code is too large (max 10,000 characters)";
+              }
+              return null;
+            },
+          });
+
+          if (!pastedCode) {
+            return;
+          }
+          codeContent = pastedCode;
+        } else if (inputMethod.label === "Select File") {
+          const fileUri = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            openLabel: "Select File",
+            filters: {
+              "All Files": ["*"],
+            },
+          });
+
+          if (!fileUri || fileUri.length === 0) {
+            return;
+          }
+
+          const document = await vscode.workspace.openTextDocument(fileUri[0]);
+          codeContent = document.getText();
+
+          if (codeContent.length === 0 || codeContent.length > 10000) {
+            vscode.window.showErrorMessage(
+              "The file content is either empty or too large (max 10,000 characters)"
+            );
+            return;
+          }
+        } else if (inputMethod.label === "Use Current Selection") {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            vscode.window.showErrorMessage("No active editor found");
+            return;
+          }
+
+          const selection = editor.selection;
+          codeContent = editor.document.getText(selection);
+
+          if (codeContent.length === 0) {
+            vscode.window.showErrorMessage(
+              "No text selected. Please select some code first."
+            );
+            return;
+          }
+
+          if (codeContent.length > 10000) {
+            vscode.window.showErrorMessage(
+              "Selection is too large (max 10,000 characters)"
+            );
+            return;
+          }
+        } else if (inputMethod.label === "Use Current File") {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            vscode.window.showErrorMessage("No active editor found");
+            return;
+          }
+
+          codeContent = editor.document.getText();
+
+          if (codeContent.length === 0 || codeContent.length > 10000) {
+            vscode.window.showErrorMessage(
+              "The file content is either empty or too large (max 10,000 characters)"
+            );
+            return;
+          }
+        }
+
+        // Generate diagram using VS Code endpoint
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: `Generating ${selectedType} from FlowCraft`,
+            cancellable: false,
+          },
+          async (progress, _token) => {
+            progress.report({ increment: 0 });
+
+            try {
+              progress.report({ increment: 20 });
+
+              // Get API key
+              const apiKey = await ensureOpenAIKey(apiKeyService);
+              if (!apiKey) {
+                vscode.window.showErrorMessage(
+                  "FlowCraft needs an OpenAI API key to function."
+                );
+                return;
+              }
+
+              progress.report({ increment: 40 });
+
+              const flowCraftApiUrl =
+                process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL;
+
+              // Create title from first 50 chars of content or use diagram type
+              let title = "";
+              const editor = vscode.window.activeTextEditor;
+              if (editor && editor.document && editor.document.fileName) {
+                const fileName = editor.document.fileName.split(/[\\/]/).pop();
+                title = fileName ? fileName.replace(/\s/g, "_") : "";
+              }
+              if (!title.trim()) {
+                title = `${selectedType} - ${new Date().toISOString()}`;
+              }
+
+              const body = {
+                title: title,
+                description: codeContent,
+                type: selectedType, // Send the display name, API will map it
+                source: "vscode",
+              };
+
+              console.log("Request Body: ", body);
+              console.log("Sending a request to this endpoint: ", `${flowCraftApiUrl}/v2/diagrams/generate`);
+
+              const response = await fetch(
+                `${flowCraftApiUrl}/v2/diagrams/generate`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-OpenAI-Key": apiKey,
+                  },
+                  body: JSON.stringify(body),
+                }
+              );
+
+              progress.report({ increment: 80 });
+
+              if (!response.ok) {
+                const errorData: any = await response.json().catch(() => ({}));
+                throw new Error(
+                  errorData.detail ||
+                    `HTTP ${response.status}: ${response.statusText}`
+                );
+              }
+
+              const data: any = await response.json();
+              console.log("RESPONSE Data: ", data);
+
+              const _res = data.response;
+              const diagram = _res.mermaid_code;
+              const inserted_diagram = _res.inserted_diagram;
+
+              console.log("Diagram: ", diagram);
+              console.log("Inserted Diagram: ", inserted_diagram);
+
+              if (
+                inserted_diagram &&
+                inserted_diagram.data &&
+                inserted_diagram.data.length > 0
+              ) {
+                progress.report({ increment: 100 });
+
+                const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
+                vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
+
+                vscode.window
+                  .showInformationMessage(
+                    "The diagram has been successfully generated. If the diagram does not open automatically, please click on the link below.",
+                    "Open Diagram"
+                  )
+                  .then((selection) => {
+                    if (selection === "Open Diagram") {
+                      vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
+                    }
+                  });
+              } else {
+                vscode.window.showErrorMessage(
+                  "An error occurred while generating the diagram. Please try again later."
+                );
+              }
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                `An error occurred while generating the diagram: ${error.message}`
+              );
+              console.error("Error generating diagram:", error);
+            }
+          }
+        );
+      }
+    }
+  );
+
+  let showHistoryCommand = vscode.commands.registerCommand(
+    "flowcraft.showHistory",
+    async () => {
+      const recent = await diagramService.getRecent();
+      if (recent.length === 0) {
+        vscode.window.showInformationMessage("No diagram history found.");
+        return;
+      }
+      const items = recent.map((d) => ({
+        label: d.title,
+        description: d.type,
+        detail: d.description,
+        id: d.id,
+      }));
+      const selection = await vscode.window.showQuickPick(items, {
+        placeHolder: "Select a diagram to view",
+      });
+      if (selection) {
+        const diagramUrl = `https://flowcraft.app/vscode/${selection.id}`;
+        vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
+      }
+    }
+  );
+
+  let generateFromSelectionCommand = vscode.commands.registerCommand(
+    "flowcraft.generateFromSelection",
+    () => vscode.commands.executeCommand(GENERATE_SELECTION_FLOW_DIAGRAM)
+  );
+
+  let generateFromFileCommand = vscode.commands.registerCommand(
+    "flowcraft.generateFromFile",
+    () => vscode.commands.executeCommand(GENERATE_FLOW_DIAGRAM)
   );
 
   let generateFlowDiagramDisposable = vscode.commands.registerCommand(
@@ -189,13 +514,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(context);
+            const apiKey = await ensureOpenAIKey(apiKeyService);
             if (!apiKey) {
               vscode.window.showErrorMessage(
                 "FlowCraft needs an OpenAI API key to function."
               );
               return;
             }
+
+            console.log("Request Body: ", body);
 
             fetch(`${flowCraftApiUrl}/diagrams/generate`, {
               method: "POST",
@@ -304,7 +631,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(context);
+            const apiKey = await ensureOpenAIKey(apiKeyService);
             if (!apiKey) {
               vscode.window.showErrorMessage(
                 "FlowCraft needs an OpenAI API key to function."
@@ -403,7 +730,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(context);
+            const apiKey = await ensureOpenAIKey(apiKeyService);
             if (!apiKey) {
               vscode.window.showErrorMessage(
                 "FlowCraft needs an OpenAI API key to function."
@@ -503,7 +830,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(context);
+            const apiKey = await ensureOpenAIKey(apiKeyService);
             if (!apiKey) {
               vscode.window.showErrorMessage(
                 "FlowCraft needs an OpenAI API key to function."
@@ -580,6 +907,10 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(generateSelectionClassDiagramDisposable);
   context.subscriptions.push(resetKeyCommand);
   context.subscriptions.push(openSettingsCommand);
+  context.subscriptions.push(openGenerationViewCommand);
+  context.subscriptions.push(showHistoryCommand);
+  context.subscriptions.push(generateFromSelectionCommand);
+  context.subscriptions.push(generateFromFileCommand);
   context.subscriptions.push(chatHandler);
 }
 

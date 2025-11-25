@@ -1,82 +1,67 @@
-# FlowCraft
+# FlowCraft - AI-Powered Diagram Generator 🎨✨
 
-[FlowCraft](https://flowcraft.app) empowers developers to effortlessly convert code into visual flow diagrams. Simplify your workflow and enhance code comprehension by generating clear and concise flowcharts directly within your development environment.
+Transform your code into beautiful diagrams, infographics, and visualizations instantly. **FlowCraft** allows developers to visualize complex logic, document architectures, and create professional assets directly within VS Code, powered by your choice of AI.
 
-## Features
+[FlowCraft](https://www.flowcraft.app)
 
-- **Privacy-First Approach**: Use your own OpenAI API key for complete control and transparency over API usage
-- **Effortless Code Conversion**: Select a code block or an entire file and instantly generate a corresponding flow diagram
-- **Multiple Diagram Types**: Support for both flow diagrams and class diagrams
-- **Seamless Integration**: Works seamlessly within VS Code, allowing you to visualize code flow without context switching
-- **Improved Code Understanding**: Flow diagrams provide a visual representation of code logic, making it easier to understand complex structures
-- **Enhanced Communication**: Flowcharts facilitate clear communication of code flow between developers and stakeholders
+## Key Features
 
-## Getting Started
+### Multi-Provider AI Support
+Choose the AI model that fits your needs and budget. FlowCraft supports:
+*   **OpenAI**
+*   **Anthropic**
+*   **Google**
+*   **FlowCraft API** 
+    * Documentation available at [FlowCraft API Docs](https://www.flowcraft.app/features/api-keys/).
 
-1. Install the FlowCraft extension from VS Code marketplace
-2. On first use, you'll be prompted to enter your OpenAI API key
-   - This gives you full control over API usage and costs
-   - Your key is stored securely in VS Code's secret storage
-   - Never transmitted or stored on our servers
-3. Start generating diagrams with any of the available commands!
+### Comprehensive Visualization Types
+Generate widespread diagram standards and creative assets:
+*   **Mermaid Diagrams**: Flowcharts, Sequence, Class, State, ER, Gantt, Pie Charts.
+*   **Infographics**: Create SVG-based infographics for presentations and docs. (Coming Soon)
+*   **AI Images**: Generate illustrative images and diagrams from text descriptions. (Coming Soon)
 
-Need to update your API key? Use the `FlowCraft: Reset API Key` command to securely remove the existing key and enter a new one.
+### Privacy-First Architecture
+*   **Bring Your Own Key (BYOK)**: Your API keys are stored securely in VS Code's Secret Storage.
 
-## Why Bring Your Own API Key?
-
-- **Cost Control**: Direct visibility and control over API usage
-- **Transparency**: You know exactly what you're paying for
-- **Security**: Your key is stored securely in VS Code's secret storage
-- **Flexibility**: Use your organization's API key with custom rate limits and settings
-
-## Available Commands
-
-- `FlowCraft: Generate Flow Diagram for Current File`: Generates a flow diagram for the current file
-- `FlowCraft: Generate Flow Diagram for Selection`: Generates a flow diagram for the selected code block
-- `FlowCraft: Generate Class Diagram for Current File`: Generates a class diagram for the current file
-- `FlowCraft: Generate Class Diagram for Selection`: Generates a class diagram for the selected code block
-- `FlowCraft: Reset API Key`: Securely remove existing API key and enter a new one
-
-## Future Enhancements
-
-- Support for additional diagram types (sequence diagrams, UML diagrams, etc.)
-- Customization options for diagram appearance
-- Integration with version control systems to track flow diagram changes
-- Batch processing for multiple files
-- Team collaboration features
-
-## Release Notes
-
-### 1.2.0
-
-Privacy and Control Update! 🔒
-
-We're excited to announce a major update focused on privacy and user control:
-
-- **Bring Your Own API Key**: Use your own OpenAI API key for complete control over API usage
-- **Enhanced Privacy**: Your code never passes through our servers
-- **Secure Storage**: API keys are stored securely in VS Code's secret storage
-- **Better Cost Control**: Direct visibility and control over API usage
-- **All Existing Features**: Continues to support both flow and class diagrams
-
-### 1.1.0
-
-Class Diagrams Update:
-
-- **Class Diagrams**: Generate class diagrams from your code
-- **Improved Flow Diagrams**: Enhanced accuracy and readability
-- **Performance Improvements**: Faster diagram generation
-
-### 1.0.0
-
-Initial release with core functionality for flow diagram generation.
+### Seamless In-Editor Experience
+*   **Integrated Viewer**: View, zoom, and pan diagrams without leaving VS Code.
+*   **History & Management**: Access, regenerate, or duplicate past diagrams from a dedicated history view.
+*   **Export**: One-click export to **SVG**, **PNG**, or **PDF**.
 
 ---
 
-## Requesting Enhancements or Reporting Issues
+## Getting Started
 
-If you have any suggestions for future enhancements or encounter any issues, please feel free to create an issue on the [GitHub repository](https://github.com/shagunmistry/FlowCraft-VsCode-Extension). We appreciate your feedback and contributions!
+1.  **Install FlowCraft** from the VS Code Marketplace.
+2.  **Open the Sidebar**: Click the FlowCraft logo in the activity bar.
+3.  **Configure Provider**:
+    *   On first run, you will be prompted to configure an API provider.
+    *   Enter your API Key (e.g., OpenAI, Anthropic) to get started.
+4.  **Generate**:
+    *   Select code in your editor and right-click -> `FlowCraft: Generate Diagram from Selection`.
+    *   Or use the sidebar "Generate Diagram" button to start from scratch.
 
-## Support
+## 💡 Usage
 
-Need help? Have questions about API usage or costs? Visit our [support page](https://flowcraft.app/support) or reach out to us on [Twitter](https://twitter.com/flowcraft).
+### Generating Diagrams
+You can generate diagrams in multiple ways:
+*   **Context Menu**: Select code, Right-click > `FlowCraft: Generate...`
+*   **Command Palette**: `Ctrl+Shift+P` (or `Cmd+Shift+P`) > type `FlowCraft`
+*   **Sidebar UI**: Use the visual "Create Diagram" interface to select type, complexity, and style.
+
+## Configuration
+
+Access settings via `Cmd+,` (or `Ctrl+,`) and search for `FlowCraft`:
+*   `flowcraft.api.provider`: Set your default AI provider.
+*   `flowcraft.diagrams.defaultType`: Set your preferred diagram type.
+*   `flowcraft.diagrams.autoSave`: Toggle automatic saving to history.
+
+## Contributing & Support
+
+We love feedback!
+*   **Report Issues**: [GitHub Issues](https://github.com/shagunmistry/FlowCraft-VsCode-Extension/issues)
+*   **Feature Requests**: Submit a request on our repo.
+
+---
+
+*Built with ❤️ for developers who love visual documentation.*

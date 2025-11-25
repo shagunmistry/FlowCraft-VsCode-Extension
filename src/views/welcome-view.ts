@@ -72,8 +72,6 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
     const welcomeCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'welcome', 'welcome.css']);
     const codiconCss = getWebviewUri(webview, this.extensionUri, ['node_modules', '@vscode', 'codicons', 'dist', 'codicon.css']);
     
-    const messagingJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'utils', 'messaging.js']);
-    const domJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'utils', 'dom.js']);
     const welcomeJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'welcome', 'welcome.js']);
 
     // Replacements
@@ -83,8 +81,6 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
       .replace(/{{componentsCss}}/g, componentsCss.toString())
       .replace(/{{welcomeCss}}/g, welcomeCss.toString())
       .replace(/{{codiconCss}}/g, codiconCss.toString())
-      .replace(/{{messagingJs}}/g, messagingJs.toString())
-      .replace(/{{domJs}}/g, domJs.toString())
       .replace(/{{welcomeJs}}/g, welcomeJs.toString());
 
     return html;

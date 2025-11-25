@@ -177,8 +177,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     const settingsCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'settings', 'settings.css']);
     const codiconCss = getWebviewUri(webview, this.extensionUri, ['node_modules', '@vscode', 'codicons', 'dist', 'codicon.css']);
     
-    const messagingJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'utils', 'messaging.js']);
-    const domJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'utils', 'dom.js']);
     const settingsJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'settings', 'settings.js']);
 
     html = html.replace(/{{cspSource}}/g, webview.cspSource)
@@ -187,8 +185,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       .replace(/{{componentsCss}}/g, componentsCss.toString())
       .replace(/{{settingsCss}}/g, settingsCss.toString())
       .replace(/{{codiconCss}}/g, codiconCss.toString())
-      .replace(/{{messagingJs}}/g, messagingJs.toString())
-      .replace(/{{domJs}}/g, domJs.toString())
       .replace(/{{settingsJs}}/g, settingsJs.toString());
 
     return html;

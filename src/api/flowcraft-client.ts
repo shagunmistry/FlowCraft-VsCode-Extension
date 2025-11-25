@@ -428,13 +428,22 @@ export class FlowCraftClient {
    */
   private mapDiagramType(type: DiagramType): string {
     const mapping: Record<string, string> = {
-      [DiagramType.Flowchart]: 'flowchart',
-      [DiagramType.Sequence]: 'sequence diagram',
-      [DiagramType.Class]: 'class diagram',
-      [DiagramType.State]: 'state diagram',
-      [DiagramType.ER]: 'er diagram',
-      [DiagramType.Gantt]: 'gantt',
-      [DiagramType.Pie]: 'pie'
+      [DiagramType.Flowchart]: 'FlowChart',
+      [DiagramType.Sequence]: 'Sequence Diagram',
+      [DiagramType.Class]: 'Class Diagram',
+      [DiagramType.State]: 'State Diagram',
+      [DiagramType.ER]: 'Entity Relationship Diagram',
+      [DiagramType.UserJourney]: 'User Journey',
+      [DiagramType.Gantt]: 'Gantt',
+      [DiagramType.Pie]: 'Pie Chart',
+      [DiagramType.Quadrant]: 'Quadrant Chart',
+      [DiagramType.Requirement]: 'Requirement Diagram',
+      [DiagramType.Gitgraph]: 'Gitgraph (Git) Diagram',
+      [DiagramType.Mindmap]: 'Mindmaps',
+      [DiagramType.Timeline]: 'Timeline',
+      [DiagramType.Zenuml]: 'Zenuml',
+      [DiagramType.Sankey]: 'Sankey',
+      [DiagramType.Treemap]: 'Treemap'
     };
 
     return mapping[type] || type;

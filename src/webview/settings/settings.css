@@ -1,0 +1,251 @@
+/* Settings View Specific Styles - Apple Aesthetic Minimalist */
+
+body {
+  padding: var(--spacing-lg);
+  overflow-x: hidden;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.settings-container {
+  max-width: 680px; /* Optimal reading width */
+  margin: 0 auto;
+  padding-bottom: 80px; /* Space for sticky footer */
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--spacing-xl);
+  padding: 0 var(--spacing-sm);
+}
+
+.header h1 {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background-color: rgba(128, 128, 128, 0.1);
+}
+
+.btn-icon i {
+  font-size: 16px;
+}
+
+/* Sections / Groups */
+.section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.section-header {
+  padding: 0 var(--spacing-md) var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+.section-content {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  /* No border, rely on background contrast or shadow */
+  box-shadow: var(--shadow-sm); 
+}
+
+
+/* Form Items - Apple Style Lists */
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-divider);
+  min-height: 44px;
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+
+.form-row.top-align {
+  align-items: flex-start;
+}
+
+.form-label {
+  flex: 1;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+.form-control {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Inputs */
+.input {
+  width: 100%; 
+  padding: 8px 12px;
+  font-size: var(--font-size-md);
+  border: 1px solid transparent;
+  background-color: var(--color-bg); /* Light grey bg inside white card */
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-mono);
+}
+
+.input:focus {
+  outline: none;
+  background-color: var(--color-surface-elevated);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* Select inputs need specific styling to look good */
+select.input {
+  font-family: var(--font-family-body);
+  cursor: pointer;
+}
+
+/* API Key Specifics */
+.api-key-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.api-key-input-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.api-key-input-group .input {
+  flex-grow: 1;
+}
+
+.form-helper {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  padding-top: 4px;
+}
+
+.provider-status-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    background-color: var(--color-bg);
+    color: var(--color-text-secondary);
+}
+
+.provider-status-badge.configured {
+    color: var(--color-text-inverse);
+    background-color: var(--color-text-primary); /* Black badge */
+}
+
+/* Buttons */
+.btn {
+  padding: 6px 16px;
+  border-radius: 18px; /* Pill shape */
+  border: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+.btn:active {
+  opacity: 0.6;
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.btn-secondary {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+/* Footer Actions */
+.actions-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.8); /* Translucent */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: var(--z-sticky);
+}
+
+/* Dark mode adjustment for backdrop */
+body[data-vscode-theme-kind="vscode-dark"] .actions-bar,
+body[data-vscode-theme-kind="vscode-high-contrast"] .actions-bar {
+  background-color: rgba(28, 28, 30, 0.8);
+}
+
+.spinner {
+    border: 2px solid rgba(0,0,0,0.1);
+    border-left-color: currentColor;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+body[data-vscode-theme-kind="vscode-dark"] .spinner {
+    border-color: rgba(255,255,255,0.1);
+    border-left-color: currentColor;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

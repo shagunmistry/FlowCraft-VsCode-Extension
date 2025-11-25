@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}'; img-src {{cspSource}} https: data:;">
+    <title>FlowCraft Welcome</title>
+    
+    <link rel="stylesheet" href="{{themeCss}}">
+    <link rel="stylesheet" href="{{componentsCss}}">
+    <link rel="stylesheet" href="{{welcomeCss}}">
+    <link rel="stylesheet" href="{{codiconCss}}">
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="header">
+            <div class="logo-container">
+                <!-- Placeholder for logo, could be an SVG or img -->
+                <svg class="logo animate-bounce" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#5856D6;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="32" y="32" width="80" height="80" rx="16" fill="url(#grad)" />
+                    <circle cx="184" cy="72" r="40" fill="url(#grad)" opacity="0.8" />
+                    <polygon points="128,144 48,224 208,224" fill="url(#grad)" opacity="0.9" />
+                </svg>
+            </div>
+            <h1>FlowCraft</h1>
+            <p class="subtitle">AI-Powered Diagram Generator</p>
+        </div>
+
+        <div class="usage-section">
+            <div class="usage-header">
+                <span class="usage-title">Subscription</span>
+                <div id="subscription-badge">
+                    <span class="badge badge-secondary">Free</span>
+                </div>
+            </div>
+            <div class="progress-bar" id="usage-progress">
+                <div class="progress-bar-fill" id="usage-fill" style="width: 0%"></div>
+            </div>
+            <div class="usage-header" style="margin-top: 8px; margin-bottom: 0;">
+                <span class="usage-limit" id="usage-text">Loading usage...</span>
+                <span class="usage-limit" id="usage-limit"></span>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <div class="action-card" id="action-diagram">
+                <div class="action-card-icon">
+                    <i class="codicon codicon-graph"></i>
+                </div>
+                <div class="action-card-title">Diagram</div>
+                <div class="action-card-subtitle">Flowchart, Sequence...</div>
+            </div>
+            
+            <div class="action-card" id="action-infographic">
+                <div class="action-card-icon">
+                    <i class="codicon codicon-dashboard"></i>
+                </div>
+                <div class="action-card-title">Infographic</div>
+                <div class="action-card-subtitle">Visual Data</div>
+            </div>
+
+            <div class="action-card" id="action-image">
+                <div class="action-card-icon">
+                    <i class="codicon codicon-file-media"></i>
+                </div>
+                <div class="action-card-title">Image</div>
+                <div class="action-card-subtitle">AI Illustration</div>
+            </div>
+
+            <div class="action-card" id="action-history">
+                <div class="action-card-icon">
+                    <i class="codicon codicon-history"></i>
+                </div>
+                <div class="action-card-title">History</div>
+                <div class="action-card-subtitle">Past Visuals</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="quick-links">
+            <a href="#" class="link-item" id="link-settings">
+                <i class="codicon codicon-settings-gear link-icon"></i>
+                <span>Settings & API Keys</span>
+            </a>
+            <a href="https://flowcraft.app/docs" class="link-item">
+                <i class="codicon codicon-book link-icon"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="https://github.com/flowcraft/vscode/issues" class="link-item">
+                <i class="codicon codicon-github-action link-icon"></i>
+                <span>Report Issue</span>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>v2.0.0 • FlowCraft Inc.</p>
+        </div>
+    </div>
+
+    <script nonce="{{nonce}}" src="{{messagingJs}}"></script>
+    <script nonce="{{nonce}}" src="{{domJs}}"></script>
+    <script nonce="{{nonce}}" src="{{welcomeJs}}"></script>
+</body>
+</html>

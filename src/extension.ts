@@ -1,8 +1,12 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
-import { ChatParticipant, ChatRequest } from "vscode";
 import FlowCraftChatParticipant from "./ChatParticipantHandler";
+import { StateManager } from "./state/state-manager";
+import { APIKeyService } from "./services/api-key-service";
+import { UsageService } from "./services/usage-service";
+import { FlowCraftClient } from "./api/flowcraft-client";
+import { WelcomeViewProvider } from "./views/welcome-view";
+import { SettingsViewProvider } from "./views/settings-view";
+import { initLogger } from "./utils/logger";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
 const OPENAI_KEY_SECRET = "flowcraft.openai.key";
@@ -83,10 +87,35 @@ async function ensureOpenAIKey(
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "flowcraft" is now active!');
+
+  // Initialize Logger
+  initLogger('FlowCraft');
+
+  // Initialize Core Services
+  const stateManager = new StateManager(context);
+  const apiKeyService = new APIKeyService(context);
+  await apiKeyService.migrateOldKeys(); // Migrate legacy keys
+
+  const apiClient = new FlowCraftClient({
+    baseURL: process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL
+  });
+
+  const usageService = new UsageService(apiClient, stateManager, apiKeyService);
+
+  // Initialize View Providers
+  const welcomeProvider = new WelcomeViewProvider(context.extensionUri, stateManager, usageService);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(WelcomeViewProvider.viewType, welcomeProvider)
+  );
+
+  const settingsProvider = new SettingsViewProvider(context.extensionUri, stateManager, apiKeyService);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(SettingsViewProvider.viewType, settingsProvider)
+  );
 
   const chatParticipant = new FlowCraftChatParticipant();
 
@@ -97,6 +126,14 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage(
         "API key has been reset. You will be prompted for a new key on next use."
       );
+    }
+  );
+
+  let openSettingsCommand = vscode.commands.registerCommand(
+    "flowcraft.openSettings",
+    async () => {
+      // Focus the settings view
+      await vscode.commands.executeCommand('flowcraft.settingsView.focus');
     }
   );
 
@@ -542,6 +579,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(generateClassDiagramDisposable);
   context.subscriptions.push(generateSelectionClassDiagramDisposable);
   context.subscriptions.push(resetKeyCommand);
+  context.subscriptions.push(openSettingsCommand);
   context.subscriptions.push(chatHandler);
 }
 

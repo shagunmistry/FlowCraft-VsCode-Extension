@@ -34,7 +34,7 @@ class FlowCraftChatParticipant {
 
     // Get message history for context
     const previousMessages = context.history.filter(
-      (h) => h instanceof vscode.ChatResponseTurn
+      (h): h is vscode.ChatResponseTurn => h instanceof vscode.ChatResponseTurn
     );
 
     // Add previous messages to maintain context

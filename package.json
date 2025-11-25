@@ -1,35 +1,149 @@
 {
   "name": "flowcraft",
-  "displayName": "FlowCraft - Code to Diagram",
-  "description": "Turn code into diagrams using FlowCraft & AI",
+  "displayName": "FlowCraft - AI-Powered Diagram Generator",
+  "description": "Generate beautiful diagrams, infographics, and images from code using AI. Supports multiple diagram types and AI providers.",
   "publisher": "FlowCraft",
   "repository": {
     "type": "git",
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "engines": {
-    "vscode": "^1.22.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
-    "Visualization"
+    "Visualization",
+    "Machine Learning",
+    "Education"
   ],
   "keywords": [
     "flowcraft",
     "flowchart",
     "diagram",
     "uml",
-    "code",
+    "mermaid",
+    "sequence diagram",
+    "class diagram",
+    "state diagram",
+    "er diagram",
+    "gantt chart",
+    "infographic",
     "visualization",
-    "machine learning",
-    "ai",
-    "education"
+    "code visualization",
+    "ai diagram",
+    "openai",
+    "claude",
+    "anthropic",
+    "gemini",
+    "code to diagram",
+    "documentation",
+    "developer tools"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "flowcraft",
+          "title": "FlowCraft",
+          "icon": "media/icons/logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "flowcraft": [
+        {
+          "type": "webview",
+          "id": "flowcraft.welcomeView",
+          "name": "Welcome",
+          "icon": "$(home)",
+          "contextualTitle": "FlowCraft Welcome"
+        },
+        {
+          "id": "flowcraft.historyView",
+          "name": "History",
+          "icon": "$(history)",
+          "contextualTitle": "Diagram History"
+        },
+        {
+          "type": "webview",
+          "id": "flowcraft.settingsView",
+          "name": "Settings",
+          "icon": "$(settings-gear)",
+          "contextualTitle": "FlowCraft Settings"
+        }
+      ]
+    },
     "commands": [
+      {
+        "command": "flowcraft.openWelcome",
+        "title": "FlowCraft: Open Welcome",
+        "icon": "$(home)"
+      },
+      {
+        "command": "flowcraft.openGenerationView",
+        "title": "FlowCraft: Generate Diagram",
+        "icon": "$(add)"
+      },
+      {
+        "command": "flowcraft.openSettings",
+        "title": "FlowCraft: Configure API Keys",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "flowcraft.showHistory",
+        "title": "FlowCraft: View History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "flowcraft.generateFromSelection",
+        "title": "FlowCraft: Generate from Selection",
+        "icon": "$(selection)"
+      },
+      {
+        "command": "flowcraft.generateFromFile",
+        "title": "FlowCraft: Generate from File",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "flowcraft.viewDiagram",
+        "title": "FlowCraft: View Diagram",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "flowcraft.exportDiagram",
+        "title": "FlowCraft: Export Diagram",
+        "icon": "$(export)"
+      },
+      {
+        "command": "flowcraft.deleteDiagram",
+        "title": "FlowCraft: Delete Diagram",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "flowcraft.regenerateDiagram",
+        "title": "FlowCraft: Regenerate Diagram",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "flowcraft.duplicateDiagram",
+        "title": "FlowCraft: Duplicate Diagram",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "flowcraft.syncUsage",
+        "title": "FlowCraft: Sync Usage Stats",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "flowcraft.refreshHistory",
+        "title": "FlowCraft: Refresh History",
+        "icon": "$(refresh)"
+      },
       {
         "command": "flowcraft.generateFlowDiagram",
         "title": "FlowCraft: Generate Flow Diagram for Current File"
@@ -48,9 +162,230 @@
       },
       {
         "command": "flowcraft.resetApiKey",
-        "title": "FlowCraft: Reset OpenAI API Key"
+        "title": "FlowCraft: Reset API Keys"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "flowcraft.openGenerationView",
+          "when": "view == flowcraft.welcomeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "flowcraft.openSettings",
+          "when": "view == flowcraft.welcomeView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "flowcraft.refreshHistory",
+          "when": "view == flowcraft.historyView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "flowcraft.syncUsage",
+          "when": "view == flowcraft.historyView",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "flowcraft.viewDiagram",
+          "when": "view == flowcraft.historyView",
+          "group": "inline@1"
+        },
+        {
+          "command": "flowcraft.exportDiagram",
+          "when": "view == flowcraft.historyView",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "flowcraft.regenerateDiagram",
+          "when": "view == flowcraft.historyView",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "flowcraft.duplicateDiagram",
+          "when": "view == flowcraft.historyView",
+          "group": "1_actions@3"
+        },
+        {
+          "command": "flowcraft.deleteDiagram",
+          "when": "view == flowcraft.historyView",
+          "group": "2_danger@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "editorHasSelection",
+          "command": "flowcraft.generateFromSelection",
+          "group": "flowcraft@1"
+        },
+        {
+          "when": "!editorHasSelection",
+          "command": "flowcraft.generateFromFile",
+          "group": "flowcraft@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "flowcraft.generateFromFile",
+          "group": "flowcraft@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flowcraft.viewDiagram",
+          "when": "false"
+        },
+        {
+          "command": "flowcraft.exportDiagram",
+          "when": "false"
+        },
+        {
+          "command": "flowcraft.deleteDiagram",
+          "when": "false"
+        },
+        {
+          "command": "flowcraft.regenerateDiagram",
+          "when": "false"
+        },
+        {
+          "command": "flowcraft.duplicateDiagram",
+          "when": "false"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "flowcraft.openGenerationView",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowcraft.generateFromSelection",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "FlowCraft",
+      "properties": {
+        "flowcraft.api.provider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "google",
+            "flowcraft"
+          ],
+          "default": "openai",
+          "description": "Default AI provider for diagram generation",
+          "enumDescriptions": [
+            "OpenAI (GPT-4, GPT-3.5)",
+            "Anthropic (Claude)",
+            "Google (Gemini)",
+            "FlowCraft API"
+          ]
+        },
+        "flowcraft.api.baseUrl": {
+          "type": "string",
+          "default": "https://flowcraft-api-cb66lpneaq-ue.a.run.app",
+          "description": "Base URL for FlowCraft API"
+        },
+        "flowcraft.diagrams.defaultType": {
+          "type": "string",
+          "enum": [
+            "flowchart",
+            "sequence",
+            "class",
+            "state",
+            "er",
+            "gantt",
+            "pie",
+            "infographic",
+            "illustration",
+            "image"
+          ],
+          "default": "flowchart",
+          "description": "Default diagram type"
+        },
+        "flowcraft.diagrams.colorPalette": {
+          "type": "string",
+          "enum": [
+            "brand colors",
+            "monochromatic",
+            "complementary",
+            "analogous"
+          ],
+          "default": "brand colors",
+          "description": "Default color palette for diagrams"
+        },
+        "flowcraft.diagrams.complexity": {
+          "type": "string",
+          "enum": [
+            "simple",
+            "medium",
+            "complex"
+          ],
+          "default": "medium",
+          "description": "Default complexity level for diagrams"
+        },
+        "flowcraft.diagrams.defaultPrivacy": {
+          "type": "string",
+          "enum": [
+            "public",
+            "private"
+          ],
+          "default": "private",
+          "description": "Default privacy setting for new diagrams"
+        },
+        "flowcraft.diagrams.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save generated diagrams to history"
+        },
+        "flowcraft.cache.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable caching of diagrams and API responses"
+        },
+        "flowcraft.cache.ttl": {
+          "type": "number",
+          "default": 3600,
+          "description": "Cache time-to-live in seconds"
+        },
+        "flowcraft.ui.showWelcomeOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome panel on extension activation"
+        },
+        "flowcraft.ui.showUsageWarnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings when approaching usage limits"
+        },
+        "flowcraft.ui.enableAnimations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable UI animations and transitions"
+        },
+        "flowcraft.advanced.requestTimeout": {
+          "type": "number",
+          "default": 60000,
+          "description": "API request timeout in milliseconds"
+        },
+        "flowcraft.advanced.maxConcurrentRequests": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum number of concurrent API requests"
+        }
+      }
+    },
     "chatParticipants": [
       {
         "id": "flowcraft.diagramAssistant",
@@ -106,6 +441,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@types/vscode": "^1.95.0"
+    "@types/vscode": "^1.95.0",
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "mermaid": "^10.6.1"
   }
 }

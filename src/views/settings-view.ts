@@ -74,23 +74,51 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       this.stateManager.updateSettings(data.settings);
 
       // Update API Keys if provided
+      let keysUpdated = 0;
       for (const [providerKey, key] of Object.entries(data.apiKeys)) {
         if (key && key.trim().length > 0) {
            // Validate provider key cast
            const provider = providerKey as Provider;
            if (Object.values(Provider).includes(provider)) {
-              await this.apiKeyService.store(provider, key);
+              // Validate key format
+              if (this.apiKeyService.validate(provider, key)) {
+                await this.apiKeyService.store(provider, key);
+                keysUpdated++;
+              } else {
+                vscode.window.showWarningMessage(`Invalid API key format for ${provider}`);
+              }
            }
         }
       }
 
-      vscode.window.showInformationMessage('Settings saved successfully');
+      // Success message
+      const message = keysUpdated > 0 
+        ? `Settings saved. ${keysUpdated} API key(s) updated.`
+        : 'Settings saved successfully';
+      
+      vscode.window.showInformationMessage(message);
+      
+      // Send updated data back to webview
       this.sendSettingsData();
       
-      // Optionally close/hide if it was a modal, but for a side view we stay open
+      // Notify webview that save completed
+      if (this._view) {
+        this._view.webview.postMessage({
+          command: 'saveComplete',
+          data: { success: true }
+        });
+      }
+      
     } catch (error) {
       console.error('Failed to save settings:', error);
-      vscode.window.showErrorMessage('Failed to save settings');
+      vscode.window.showErrorMessage('Failed to save settings: ' + (error instanceof Error ? error.message : String(error)));
+      
+      if (this._view) {
+        this._view.webview.postMessage({
+          command: 'saveComplete',
+          data: { success: false }
+        });
+      }
     }
   }
 

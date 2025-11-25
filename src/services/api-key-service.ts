@@ -62,10 +62,100 @@ export class APIKeyService {
       return false;
     }
 
-    // For actual connection testing, this would be implemented
-    // by making a lightweight API call to verify the key works
-    // This is a placeholder for now
-    return true;
+    try {
+      switch (provider) {
+        case Provider.OpenAI:
+          return await this.testOpenAI(apiKey);
+        case Provider.Anthropic:
+          return await this.testAnthropic(apiKey);
+        case Provider.Google:
+          return await this.testGoogle(apiKey);
+        case Provider.FlowCraft:
+          return await this.testFlowCraft(apiKey);
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error(`API test failed for ${provider}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Test OpenAI API key
+   */
+  private async testOpenAI(apiKey: string): Promise<boolean> {
+    try {
+      const response = await fetch('https://api.openai.com/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Test Anthropic API key
+   */
+  private async testAnthropic(apiKey: string): Promise<boolean> {
+    try {
+      // Anthropic doesn't have a simple test endpoint, so we make a minimal completion request
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 1,
+          messages: [{ role: 'user', content: 'Hi' }]
+        })
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Test Google API key
+   */
+  private async testGoogle(apiKey: string): Promise<boolean> {
+    try {
+      // Test with Gemini API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`, {
+        method: 'GET'
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Test FlowCraft API key
+   */
+  private async testFlowCraft(apiKey: string): Promise<boolean> {
+    try {
+      // Use the usage endpoint as a test
+      const response = await fetch('https://flowcraft-api-cb66lpneaq-ue.a.run.app/v2/usage', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
   }
 
   /**

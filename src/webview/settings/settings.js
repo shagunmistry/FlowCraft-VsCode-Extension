@@ -38,6 +38,24 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = false;
         btn.innerHTML = 'Test Connection';
       }
+    },
+    saveComplete: (data) => {
+      const btn = getById('save-btn');
+      if (btn) {
+        if (data.success) {
+          btn.textContent = 'Saved ✓';
+          setTimeout(() => {
+            btn.textContent = 'Save Changes';
+            btn.disabled = false;
+          }, 1500);
+        } else {
+          btn.textContent = 'Save Failed';
+          setTimeout(() => {
+            btn.textContent = 'Save Changes';
+            btn.disabled = false;
+          }, 2000);
+        }
+      }
     }
   });
 });

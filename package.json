@@ -1,14 +1,14 @@
 {
   "name": "flowcraft",
   "displayName": "FlowCraft - AI-Powered Diagram Generator",
-  "description": "Generate beautiful diagrams, infographics, and images from code using AI. Supports multiple diagram types and AI providers.",
+  "description": "Generate beautiful diagrams, infographics, and images from code using AI. Supports multiple diagram types and AI providers, such as OpenAI, Anthropic, Google, and FlowCraft API.",
   "publisher": "FlowCraft",
   "repository": {
     "type": "git",
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -41,7 +41,10 @@
     "developer tools"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:flowcraft.welcomeView",
+    "onView:flowcraft.settingsView",
+    "onView:flowcraft.historyView"
   ],
   "main": "./out/extension.js",
   "contributes": {

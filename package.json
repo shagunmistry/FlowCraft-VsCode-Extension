@@ -8,7 +8,7 @@
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },

@@ -2,13 +2,13 @@
  * API Key Service - Secure API key management using VS Code SecretStorage
  */
 
-import * as vscode from 'vscode';
-import { Provider, ProviderConfig } from '../types';
-import { validateApiKey } from '../api/providers';
+import * as vscode from "vscode";
+import { Provider, ProviderConfig } from "../types";
+import { validateApiKey } from "../api/providers";
 
 export class APIKeyService {
   private context: vscode.ExtensionContext;
-  private readonly KEY_PREFIX = 'flowcraft.apikey.';
+  private readonly KEY_PREFIX = "flowcraft.apikey.";
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -63,97 +63,19 @@ export class APIKeyService {
     }
 
     try {
-      switch (provider) {
-        case Provider.OpenAI:
-          return await this.testOpenAI(apiKey);
-        case Provider.Anthropic:
-          return await this.testAnthropic(apiKey);
-        case Provider.Google:
-          return await this.testGoogle(apiKey);
-        case Provider.FlowCraft:
-          return await this.testFlowCraft(apiKey);
-        default:
-          return false;
-      }
+      const response = await fetch(
+        "https://flowcraft-api-cb66lpneaq-ue.a.run.app/v2/vscode/verify",
+        {
+          method: "GET",
+          headers: {
+            "X-api-key": apiKey,
+            provider: provider.toLowerCase(),
+          },
+        }
+      );
+      return response.ok;
     } catch (error) {
       console.error(`API test failed for ${provider}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Test OpenAI API key
-   */
-  private async testOpenAI(apiKey: string): Promise<boolean> {
-    try {
-      const response = await fetch('https://api.openai.com/v1/models', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Test Anthropic API key
-   */
-  private async testAnthropic(apiKey: string): Promise<boolean> {
-    try {
-      // Anthropic doesn't have a simple test endpoint, so we make a minimal completion request
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-haiku-20240307',
-          max_tokens: 1,
-          messages: [{ role: 'user', content: 'Hi' }]
-        })
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Test Google API key
-   */
-  private async testGoogle(apiKey: string): Promise<boolean> {
-    try {
-      // Test with Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`, {
-        method: 'GET'
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Test FlowCraft API key
-   */
-  private async testFlowCraft(apiKey: string): Promise<boolean> {
-    try {
-      // Use the usage endpoint as a test
-      const response = await fetch('https://flowcraft-api-cb66lpneaq-ue.a.run.app/v2/usage', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.ok;
-    } catch (error) {
       return false;
     }
   }
@@ -176,10 +98,10 @@ export class APIKeyService {
    */
   async migrateOldKeys(): Promise<void> {
     // Migrate from old 'flowcraft.openai.key' to new format
-    const oldKey = await this.context.secrets.get('flowcraft.openai.key');
+    const oldKey = await this.context.secrets.get("flowcraft.openai.key");
     if (oldKey) {
       await this.store(Provider.OpenAI, oldKey);
-      await this.context.secrets.delete('flowcraft.openai.key');
+      await this.context.secrets.delete("flowcraft.openai.key");
     }
   }
 
@@ -213,7 +135,7 @@ export class APIKeyService {
       provider,
       apiKey,
       isEnabled: true,
-      displayName: displayName || provider.toString()
+      displayName: displayName || provider.toString(),
     };
   }
 

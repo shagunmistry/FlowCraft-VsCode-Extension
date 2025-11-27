@@ -43,45 +43,108 @@ async function getCurrentOpenFileText() {
   return text;
 }
 
-async function getOpenAIKey(
-  apiKeyService: APIKeyService
+async function getProviderApiKey(
+  apiKeyService: APIKeyService,
+  provider: Provider
 ): Promise<string | undefined> {
-  return await apiKeyService.retrieve(Provider.OpenAI);
+  return await apiKeyService.retrieve(provider);
 }
 
-async function promptForOpenAIKey(
-  apiKeyService: APIKeyService
+async function promptForProviderApiKey(
+  apiKeyService: APIKeyService,
+  provider: Provider
 ): Promise<string | undefined> {
+  // Get provider-specific validation info
+  let prompt = "";
+  let placeholder = "";
+  let validateInput: (value: string) => string | null;
+
+  switch (provider) {
+    case Provider.OpenAI:
+      prompt = "Please enter your OpenAI API key (starts with 'sk-')";
+      placeholder = "sk-...";
+      validateInput = (value: string) => {
+        if (!value.startsWith("sk-")) {
+          return 'OpenAI API key should start with "sk-"';
+        }
+        if (value.length < 20) {
+          return "Invalid API key length";
+        }
+        return null;
+      };
+      break;
+    case Provider.Anthropic:
+      prompt = "Please enter your Anthropic API key (starts with 'sk-ant-')";
+      placeholder = "sk-ant-...";
+      validateInput = (value: string) => {
+        if (!value.startsWith("sk-ant-")) {
+          return 'Anthropic API key should start with "sk-ant-"';
+        }
+        if (value.length < 20) {
+          return "Invalid API key length";
+        }
+        return null;
+      };
+      break;
+    case Provider.Google:
+      prompt = "Please enter your Google (Gemini) API key";
+      placeholder = "Your Google API key";
+      validateInput = (value: string) => {
+        if (value.length < 20) {
+          return "Invalid API key length";
+        }
+        return null;
+      };
+      break;
+    case Provider.FlowCraft:
+      prompt = "Please enter your FlowCraft API key";
+      placeholder = "Your FlowCraft API key";
+      validateInput = (value: string) => {
+        if (value.length < 10) {
+          return "Invalid API key length";
+        }
+        return null;
+      };
+      break;
+    default:
+      prompt = `Please enter your ${provider} API key`;
+      placeholder = "API key";
+      validateInput = (value: string) => {
+        if (value.length < 10) {
+          return "Invalid API key length";
+        }
+        return null;
+      };
+  }
+
   const apiKey = await vscode.window.showInputBox({
-    prompt: "Please enter your OpenAI API key (starts with 'sk-')",
-    placeHolder: "sk-...",
+    prompt,
+    placeHolder: placeholder,
     password: true,
     ignoreFocusOut: true,
-    validateInput: (value: string) => {
-      if (!value.startsWith("sk-")) {
-        return 'OpenAI API key should start with "sk-"';
-      }
-      if (value.length < 20) {
-        return "Invalid API key length";
-      }
-      return null;
-    },
+    validateInput,
   });
 
   if (apiKey) {
-    await apiKeyService.store(Provider.OpenAI, apiKey);
+    await apiKeyService.store(provider, apiKey);
     return apiKey;
   }
   return undefined;
 }
 
-async function ensureOpenAIKey(
+async function ensureProviderApiKey(
+  stateManager: StateManager,
   apiKeyService: APIKeyService
 ): Promise<string | undefined> {
-  let apiKey = await getOpenAIKey(apiKeyService);
+  // Get the default provider from settings
+  const defaultProvider = stateManager.getSetting("defaultProvider");
 
+  // Check if API key exists for the default provider
+  let apiKey = await getProviderApiKey(apiKeyService, defaultProvider);
+
+  // If not, prompt for it
   if (!apiKey) {
-    apiKey = await promptForOpenAIKey(apiKeyService);
+    apiKey = await promptForProviderApiKey(apiKeyService, defaultProvider);
   }
 
   return apiKey;
@@ -324,11 +387,12 @@ export async function activate(context: vscode.ExtensionContext) {
             try {
               progress.report({ increment: 20 });
 
-              // Get API key
-              const apiKey = await ensureOpenAIKey(apiKeyService);
+              // Get API key based on default provider
+              const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
               if (!apiKey) {
+                const defaultProvider = stateManager.getSetting("defaultProvider");
                 vscode.window.showErrorMessage(
-                  "FlowCraft needs an OpenAI API key to function."
+                  `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
                 );
                 return;
               }
@@ -365,7 +429,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
-                    "X-OpenAI-Key": apiKey,
+                    "X-api-key": apiKey,
                   },
                   body: JSON.stringify(body),
                 }
@@ -514,10 +578,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(apiKeyService);
+            const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
+              const defaultProvider = stateManager.getSetting("defaultProvider");
               vscode.window.showErrorMessage(
-                "FlowCraft needs an OpenAI API key to function."
+                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
               );
               return;
             }
@@ -528,7 +593,7 @@ export async function activate(context: vscode.ExtensionContext) {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-OpenAI-Key": apiKey,
+                "X-api-key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -631,10 +696,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(apiKeyService);
+            const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
+              const defaultProvider = stateManager.getSetting("defaultProvider");
               vscode.window.showErrorMessage(
-                "FlowCraft needs an OpenAI API key to function."
+                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
               );
               return;
             }
@@ -643,7 +709,7 @@ export async function activate(context: vscode.ExtensionContext) {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-OpenAI-Key": apiKey,
+                "X-api-key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -730,10 +796,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(apiKeyService);
+            const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
+              const defaultProvider = stateManager.getSetting("defaultProvider");
               vscode.window.showErrorMessage(
-                "FlowCraft needs an OpenAI API key to function."
+                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
               );
               return;
             }
@@ -742,7 +809,7 @@ export async function activate(context: vscode.ExtensionContext) {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-OpenAI-Key": apiKey,
+                "X-api-key": apiKey,
               },
               body: JSON.stringify(body),
             })
@@ -830,10 +897,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
             progress.report({ increment: 40 });
 
-            const apiKey = await ensureOpenAIKey(apiKeyService);
+            const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
+              const defaultProvider = stateManager.getSetting("defaultProvider");
               vscode.window.showErrorMessage(
-                "FlowCraft needs an OpenAI API key to function."
+                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
               );
               return;
             }
@@ -842,7 +910,7 @@ export async function activate(context: vscode.ExtensionContext) {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-OpenAI-Key": apiKey,
+                "X-api-key": apiKey,
               },
               body: JSON.stringify(body),
             })

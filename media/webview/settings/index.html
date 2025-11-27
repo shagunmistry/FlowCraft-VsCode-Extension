@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}'; img-src {{cspSource}} https: data:;">
+    <title>FlowCraft Settings</title>
+    
+    <link rel="stylesheet" href="{{themeCss}}">
+    <link rel="stylesheet" href="{{componentsCss}}">
+    <link rel="stylesheet" href="{{settingsCss}}">
+    <link rel="stylesheet" href="{{codiconCss}}">
+</head>
+<body>
+    <div class="settings-container">
+        <div class="header">
+            <h1>Settings</h1>
+            <div class="header-actions">
+                <button class="btn-icon" id="reset-btn" title="Reset to defaults">
+                    <i class="codicon codicon-refresh"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Providers Section -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">AI Providers</div>
+            </div>
+            <div class="section-content">
+                
+                <!-- OpenAI -->
+                <div class="form-row top-align">
+                    <div class="form-label">
+                        OpenAI
+                        <div class="form-helper">GPT-4, GPT-3.5 Turbo</div>
+                    </div>
+                    <div class="form-control api-key-container">
+                        <div class="api-key-input-group">
+                            <input type="password" class="input" id="key-openai" placeholder="sk-None...">
+                        </div>
+                        <div class="flex justify-between items-center" style="margin-top: 6px;">
+                             <div class="form-helper" id="status-openai">Securely stored</div>
+                             <button class="btn btn-secondary" id="test-openai" style="font-size: 11px; padding: 4px 10px;">Test Connection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anthropic -->
+                <div class="form-row top-align">
+                    <div class="form-label">
+                        Anthropic
+                        <div class="form-helper">Claude 3 Opus, Sonnet</div>
+                    </div>
+                    <div class="form-control api-key-container">
+                        <div class="api-key-input-group">
+                            <input type="password" class="input" id="key-anthropic" placeholder="sk-ant-...">
+                        </div>
+                        <div class="flex justify-between items-center" style="margin-top: 6px;">
+                             <div class="form-helper" id="status-anthropic">Securely stored</div>
+                             <button class="btn btn-secondary" id="test-anthropic" style="font-size: 11px; padding: 4px 10px;">Test Connection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google -->
+                <div class="form-row top-align">
+                    <div class="form-label">
+                        Google
+                        <div class="form-helper">Gemini Pro</div>
+                    </div>
+                    <div class="form-control api-key-container">
+                        <div class="api-key-input-group">
+                            <input type="password" class="input" id="key-google" placeholder="AIza...">
+                        </div>
+                        <div class="flex justify-between items-center" style="margin-top: 6px;">
+                             <div class="form-helper" id="status-google">Securely stored</div>
+                             <button class="btn btn-secondary" id="test-google" style="font-size: 11px; padding: 4px 10px;">Test Connection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FlowCraft (Native) -->
+                <div class="form-row top-align">
+                    <div class="form-label">
+                        FlowCraft Cloud
+                        <div class="form-helper">Specialized Models</div>
+                    </div>
+                    <div class="form-control api-key-container">
+                        <div class="api-key-input-group">
+                            <input type="password" class="input" id="key-flowcraft" placeholder="fc_...">
+                        </div>
+                        <div class="flex justify-between items-center" style="margin-top: 6px;">
+                             <div class="form-helper" id="status-flowcraft">Account token</div>
+                             <button class="btn btn-secondary" id="test-flowcraft" style="font-size: 11px; padding: 4px 10px;">Test Connection</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- General Preferences -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Preferences</div>
+            </div>
+            <div class="section-content">
+                
+                <div class="form-row">
+                    <label class="form-label" for="default-provider">Default Provider</label>
+                    <div class="form-control">
+                        <select class="input" id="default-provider" style="width: auto; min-width: 140px;">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="google">Google</option>
+                            <option value="flowcraft">FlowCraft Cloud</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="default-type">Default Diagram</label>
+                    <div class="form-control">
+                         <select class="input" id="default-type" style="width: auto; min-width: 140px;">
+                            <option value="flowchart">Flowchart</option>
+                            <option value="sequence">Sequence Diagram</option>
+                            <option value="class">Class Diagram</option>
+                            <option value="state">State Diagram</option>
+                            <option value="er">ER Diagram</option>
+                            <option value="gantt">Gantt Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="default-palette">Default Colors</label>
+                    <div class="form-control">
+                        <select class="input" id="default-palette" style="width: auto; min-width: 140px;">
+                            <option value="brand colors">Brand Colors</option>
+                            <option value="monochromatic">Monochromatic</option>
+                            <option value="complementary">Complementary</option>
+                            <option value="analogous">Analogous</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="default-complexity">Complexity</label>
+                    <div class="form-control">
+                        <select class="input" id="default-complexity" style="width: auto; min-width: 140px;">
+                            <option value="simple">Simple</option>
+                            <option value="medium">Medium</option>
+                            <option value="complex">Complex</option>
+                        </select>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <button class="btn btn-primary" id="save-btn" style="min-width: 120px;">Save Changes</button>
+    </div>
+
+    <script type="module" nonce="{{nonce}}" src="{{settingsJs}}"></script>
+</body>
+</html>

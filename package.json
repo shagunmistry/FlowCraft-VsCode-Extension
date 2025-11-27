@@ -8,7 +8,7 @@
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -43,8 +43,7 @@
   "activationEvents": [
     "onStartupFinished",
     "onView:flowcraft.welcomeView",
-    "onView:flowcraft.settingsView",
-    "onView:flowcraft.historyView"
+    "onView:flowcraft.settingsView"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -65,12 +64,6 @@
           "name": "Welcome",
           "icon": "$(home)",
           "contextualTitle": "FlowCraft Welcome"
-        },
-        {
-          "id": "flowcraft.historyView",
-          "name": "History",
-          "icon": "$(history)",
-          "contextualTitle": "Diagram History"
         },
         {
           "type": "webview",
@@ -179,43 +172,6 @@
           "command": "flowcraft.openSettings",
           "when": "view == flowcraft.welcomeView",
           "group": "navigation@2"
-        },
-        {
-          "command": "flowcraft.refreshHistory",
-          "when": "view == flowcraft.historyView",
-          "group": "navigation@1"
-        },
-        {
-          "command": "flowcraft.syncUsage",
-          "when": "view == flowcraft.historyView",
-          "group": "navigation@2"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "flowcraft.viewDiagram",
-          "when": "view == flowcraft.historyView",
-          "group": "inline@1"
-        },
-        {
-          "command": "flowcraft.exportDiagram",
-          "when": "view == flowcraft.historyView",
-          "group": "1_actions@1"
-        },
-        {
-          "command": "flowcraft.regenerateDiagram",
-          "when": "view == flowcraft.historyView",
-          "group": "1_actions@2"
-        },
-        {
-          "command": "flowcraft.duplicateDiagram",
-          "when": "view == flowcraft.historyView",
-          "group": "1_actions@3"
-        },
-        {
-          "command": "flowcraft.deleteDiagram",
-          "when": "view == flowcraft.historyView",
-          "group": "2_danger@1"
         }
       ],
       "editor/context": [
@@ -426,9 +382,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
+    "vscode:prepublish": "pnpm run compile && pnpm run copy-webview",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "copy-webview": "node scripts/copy-webview-files.js",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
     "test": "vscode-test"

@@ -25,7 +25,6 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [
         vscode.Uri.joinPath(this.extensionUri, 'media'),
         vscode.Uri.joinPath(this.extensionUri, 'out'),
-        vscode.Uri.joinPath(this.extensionUri, 'src', 'webview'),
         vscode.Uri.joinPath(this.extensionUri, 'node_modules')
       ]
     };
@@ -62,17 +61,17 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
     const nonce = getNonce();
     
     // Read HTML file
-    const htmlPath = vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'welcome', 'index.html');
+    const htmlPath = vscode.Uri.joinPath(this.extensionUri, 'media', 'webview', 'welcome', 'index.html');
     const htmlBytes = await vscode.workspace.fs.readFile(htmlPath);
     let html = Buffer.from(htmlBytes).toString('utf-8');
 
     // URIs
-    const themeCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'styles', 'theme.css']);
-    const componentsCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'styles', 'components.css']);
-    const welcomeCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'welcome', 'welcome.css']);
+    const themeCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'shared', 'styles', 'theme.css']);
+    const componentsCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'shared', 'styles', 'components.css']);
+    const welcomeCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'welcome', 'welcome.css']);
     const codiconCss = getWebviewUri(webview, this.extensionUri, ['node_modules', '@vscode', 'codicons', 'dist', 'codicon.css']);
-    
-    const welcomeJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'welcome', 'welcome.js']);
+
+    const welcomeJs = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'welcome', 'welcome.js']);
 
     // Replacements
     html = html.replace(/{{cspSource}}/g, webview.cspSource)

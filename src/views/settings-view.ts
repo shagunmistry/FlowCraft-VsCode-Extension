@@ -26,7 +26,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [
         vscode.Uri.joinPath(this.extensionUri, 'media'),
         vscode.Uri.joinPath(this.extensionUri, 'out'),
-        vscode.Uri.joinPath(this.extensionUri, 'src', 'webview'),
         vscode.Uri.joinPath(this.extensionUri, 'node_modules')
       ]
     };
@@ -167,17 +166,17 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
   private async getHtmlContent(webview: vscode.Webview): Promise<string> {
     const nonce = getNonce();
     
-    const htmlPath = vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'settings', 'index.html');
+    const htmlPath = vscode.Uri.joinPath(this.extensionUri, 'media', 'webview', 'settings', 'index.html');
     const htmlBytes = await vscode.workspace.fs.readFile(htmlPath);
     let html = Buffer.from(htmlBytes).toString('utf-8');
 
     // URIs
-    const themeCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'styles', 'theme.css']);
-    const componentsCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'shared', 'styles', 'components.css']);
-    const settingsCss = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'settings', 'settings.css']);
+    const themeCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'shared', 'styles', 'theme.css']);
+    const componentsCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'shared', 'styles', 'components.css']);
+    const settingsCss = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'settings', 'settings.css']);
     const codiconCss = getWebviewUri(webview, this.extensionUri, ['node_modules', '@vscode', 'codicons', 'dist', 'codicon.css']);
-    
-    const settingsJs = getWebviewUri(webview, this.extensionUri, ['src', 'webview', 'settings', 'settings.js']);
+
+    const settingsJs = getWebviewUri(webview, this.extensionUri, ['media', 'webview', 'settings', 'settings.js']);
 
     html = html.replace(/{{cspSource}}/g, webview.cspSource)
       .replace(/{{nonce}}/g, nonce)

@@ -4,105 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}'; img-src {{cspSource}} https: data:;">
-    <title>FlowCraft Welcome</title>
-    
+    <title>FlowCraft</title>
+
     <link rel="stylesheet" href="{{themeCss}}">
     <link rel="stylesheet" href="{{componentsCss}}">
     <link rel="stylesheet" href="{{welcomeCss}}">
     <link rel="stylesheet" href="{{codiconCss}}">
 </head>
 <body>
-    <div class="welcome-container">
-        <div class="header">
-            <div class="logo-container">
-                <!-- Placeholder for logo, could be an SVG or img -->
-                <svg class="logo animate-bounce" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#5856D6;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <rect x="32" y="32" width="80" height="80" rx="16" fill="url(#grad)" />
-                    <circle cx="184" cy="72" r="40" fill="url(#grad)" opacity="0.8" />
-                    <polygon points="128,144 48,224 208,224" fill="url(#grad)" opacity="0.9" />
-                </svg>
-            </div>
-            <h1>FlowCraft</h1>
-            <p class="subtitle">AI-Powered Diagram Generator</p>
-        </div>
+    <main class="wc">
 
-        <div class="usage-section">
-            <div class="usage-header">
-                <span class="usage-title">Subscription</span>
-                <div id="subscription-badge">
-                    <span class="badge badge-secondary">Free</span>
-                </div>
+        <header class="wc-head">
+            <div class="wc-prompt">
+                <span class="wc-prompt-user">flowcraft</span><span class="wc-prompt-sep">@</span><span class="wc-prompt-host">vscode</span>
+                <span class="wc-prompt-path">~/diagrams</span>
+                <span class="wc-prompt-caret">$</span>
             </div>
-            <div class="progress-bar" id="usage-progress">
-                <div class="progress-bar-fill" id="usage-fill" style="width: 0%"></div>
-            </div>
-            <div class="usage-header" style="margin-top: 8px; margin-bottom: 0;">
-                <span class="usage-limit" id="usage-text">Loading usage...</span>
-                <span class="usage-limit" id="usage-limit"></span>
-            </div>
-        </div>
+            <div class="wc-version muted">v2.1.0</div>
+        </header>
 
-        <div class="action-grid">
-            <div class="action-card" id="action-diagram">
-                <div class="action-card-icon">
-                    <i class="codicon codicon-graph"></i>
-                </div>
-                <div class="action-card-title">Diagram</div>
-                <div class="action-card-subtitle">Flowchart, Sequence...</div>
+        <section class="wc-status" aria-label="subscription status">
+            <div class="wc-status-row">
+                <span class="wc-status-label">plan</span>
+                <span id="subscription-badge" class="tag"><span class="dot"></span>free</span>
             </div>
-            
-            <div class="action-card" id="action-infographic">
-                <div class="action-card-icon">
-                    <i class="codicon codicon-dashboard"></i>
-                </div>
-                <div class="action-card-title">Infographic</div>
-                <div class="action-card-subtitle">Visual Data</div>
+            <div class="progress" id="usage-progress" aria-hidden="false">
+                <div class="fill" id="usage-fill" style="width: 0%"></div>
             </div>
-
-            <div class="action-card" id="action-image">
-                <div class="action-card-icon">
-                    <i class="codicon codicon-file-media"></i>
-                </div>
-                <div class="action-card-title">Image</div>
-                <div class="action-card-subtitle">AI Illustration</div>
+            <div class="wc-status-row wc-status-foot">
+                <span id="usage-text" class="mono muted">—</span>
+                <span id="usage-limit" class="mono muted"></span>
             </div>
+        </section>
 
-            <div class="action-card" id="action-history">
-                <div class="action-card-icon">
-                    <i class="codicon codicon-history"></i>
-                </div>
-                <div class="action-card-title">History</div>
-                <div class="action-card-subtitle">Past Visuals</div>
-            </div>
-        </div>
+        <span class="section-marker">actions</span>
 
-        <div class="divider"></div>
+        <nav class="wc-actions" aria-label="commands">
+            <button class="tile" id="action-diagram" data-key="1">
+                <span class="tile-num">1</span>
+                <span class="tile-body">
+                    <span class="tile-title">generate diagram</span>
+                    <span class="tile-desc">flowchart · sequence · class · er · …</span>
+                </span>
+                <span class="kbd">⌘⇧D</span>
+            </button>
 
-        <div class="quick-links">
-            <a href="#" class="link-item" id="link-settings">
-                <i class="codicon codicon-settings-gear link-icon"></i>
-                <span>Settings & API Keys</span>
-            </a>
-            <a href="https://flowcraft.app/docs" class="link-item">
-                <i class="codicon codicon-book link-icon"></i>
-                <span>Documentation</span>
-            </a>
-            <a href="https://github.com/flowcraft/vscode/issues" class="link-item">
-                <i class="codicon codicon-github-action link-icon"></i>
-                <span>Report Issue</span>
-            </a>
-        </div>
+            <button class="tile" id="action-selection" data-key="2">
+                <span class="tile-num">2</span>
+                <span class="tile-body">
+                    <span class="tile-title">from selection</span>
+                    <span class="tile-desc">use the highlighted text in the editor</span>
+                </span>
+                <span class="kbd">⌘⇧G</span>
+            </button>
 
-        <div class="footer">
-            <p>v2.0.0 • FlowCraft Inc.</p>
-        </div>
-    </div>
+            <button class="tile" id="action-infographic" data-key="3">
+                <span class="tile-num">3</span>
+                <span class="tile-body">
+                    <span class="tile-title">infographic <span class="tag">soon</span></span>
+                    <span class="tile-desc">visual data summary</span>
+                </span>
+                <span class="kbd">—</span>
+            </button>
+
+            <button class="tile" id="action-image" data-key="4">
+                <span class="tile-num">4</span>
+                <span class="tile-body">
+                    <span class="tile-title">illustration <span class="tag">soon</span></span>
+                    <span class="tile-desc">ai-rendered image</span>
+                </span>
+                <span class="kbd">—</span>
+            </button>
+
+            <button class="tile" id="action-history" data-key="5">
+                <span class="tile-num">5</span>
+                <span class="tile-body">
+                    <span class="tile-title">history</span>
+                    <span class="tile-desc">previously generated diagrams</span>
+                </span>
+                <span class="kbd">⌘H</span>
+            </button>
+        </nav>
+
+        <span class="section-marker">shortcuts</span>
+
+        <ul class="wc-links">
+            <li><a href="#" id="link-settings" class="wc-link">
+                <span class="wc-link-caret">›</span> settings &amp; api keys
+                <span class="kbd">⌘,</span>
+            </a></li>
+            <li><a href="https://flowcraft.app/docs" class="wc-link">
+                <span class="wc-link-caret">›</span> docs
+                <span class="muted">flowcraft.app/docs</span>
+            </a></li>
+            <li><a href="https://github.com/flowcraft/vscode/issues" class="wc-link">
+                <span class="wc-link-caret">›</span> report issue
+                <span class="muted">github</span>
+            </a></li>
+        </ul>
+
+        <footer class="wc-foot">
+            <span class="wc-foot-cell"><span class="dim">STATUS</span> <span id="foot-status" class="ok">ready</span></span>
+            <span class="wc-foot-cell"><span class="dim">MODE</span> <span id="foot-mode">byok</span></span>
+            <span class="wc-foot-cell"><span class="dim">TIP</span> press <kbd>1</kbd>–<kbd>5</kbd> or <kbd>⌘⇧P</kbd> → flowcraft</span>
+        </footer>
+    </main>
 
     <script type="module" nonce="{{nonce}}" src="{{welcomeJs}}"></script>
 </body>

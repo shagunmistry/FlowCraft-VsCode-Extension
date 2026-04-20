@@ -69,7 +69,7 @@ export async function readFile(uri: vscode.Uri): Promise<string> {
  * Write file content
  */
 export async function writeFile(uri: vscode.Uri, content: string): Promise<void> {
-  const bytes = Buffer.from(content, 'utf-8');
+  const bytes = new TextEncoder().encode(content);
   await vscode.workspace.fs.writeFile(uri, bytes);
 }
 

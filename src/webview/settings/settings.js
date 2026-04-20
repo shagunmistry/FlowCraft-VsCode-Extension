@@ -1,169 +1,131 @@
 import { postMessage, onMessage } from '../shared/utils/messaging.js';
 import { getById, queryAll } from '../shared/utils/dom.js';
 
+const PROVIDERS = ['openai', 'anthropic', 'google', 'flowcraft'];
+
 let currentSettings = {};
 let currentProviders = {};
+let keysRevealed = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Load initial settings
   postMessage('loadSettings');
+  wire();
 
-  // Setup interactions
-  setupEventListeners();
-
-  // Message handler
   onMessage({
-    updateSettings: (data) => {
-      currentSettings = data.settings;
-      currentProviders = data.providers;
-      renderSettings();
+    updateSettings: ({ settings, providers }) => {
+      currentSettings = settings;
+      currentProviders = providers;
+      render();
     },
-    connectionResult: (data) => {
-      const statusEl = getById(`status-${data.provider}`);
-      if (statusEl) {
-        statusEl.textContent = data.message;
-        // Reset class then add specific color
-        statusEl.className = 'form-helper';
-        if (data.success) {
-            statusEl.textContent = 'Connection Verified';
-            statusEl.style.color = 'var(--color-success)'; // using style directly or class if defined
-        } else {
-            statusEl.style.color = 'var(--color-error)';
-        }
-      }
-      
-      // Re-enable button
-      const btn = getById(`test-${data.provider}`);
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = 'Test Connection';
-      }
+    connectionResult: ({ provider, success, message }) => {
+      setStatus(provider, success ? 'ok' : 'err', success ? 'verified' : (message || 'failed'));
+      const btn = getById(`test-${provider}`);
+      if (btn) { btn.disabled = false; btn.textContent = 'test'; }
     },
-    saveComplete: (data) => {
+    saveComplete: ({ success }) => {
       const btn = getById('save-btn');
+      const foot = getById('foot-status');
       if (btn) {
-        if (data.success) {
-          btn.textContent = 'Saved ✓';
-          setTimeout(() => {
-            btn.textContent = 'Save Changes';
-            btn.disabled = false;
-          }, 1500);
-        } else {
-          btn.textContent = 'Save Failed';
-          setTimeout(() => {
-            btn.textContent = 'Save Changes';
-            btn.disabled = false;
-          }, 2000);
-        }
+        btn.textContent = success ? 'saved' : 'save failed';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = 'save changes'; }, 1400);
+      }
+      if (foot) {
+        foot.textContent = success ? 'changes written' : 'write failed';
+        foot.className = 'st-foot-cell ' + (success ? 'ok' : 'err');
+        setTimeout(() => { foot.textContent = 'idle'; foot.className = 'st-foot-cell'; }, 1800);
       }
     }
   });
 });
 
-function setupEventListeners() {
-  // Test connection buttons
+function wire() {
+  // Test buttons
   queryAll('[id^="test-"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const provider = btn.id.replace('test-', '');
       const input = getById(`key-${provider}`);
-      const apiKey = input.value;
-
+      const apiKey = input && input.value;
       if (!apiKey) {
-        const statusEl = getById(`status-${provider}`);
-        statusEl.textContent = 'Enter an API key first';
-        statusEl.style.color = 'var(--color-error)';
+        setStatus(provider, 'err', 'enter a key first');
         return;
       }
-
       btn.disabled = true;
-      btn.innerHTML = '<div class="spinner" style="width: 12px; height: 12px; border-width: 2px;"></div> Checking...';
-      
-      postMessage('testConnection', {
-        provider,
-        apiKey
-      });
+      btn.textContent = '…';
+      setStatus(provider, 'warn', 'checking…');
+      postMessage('testConnection', { provider, apiKey });
     });
   });
 
-  // Save button
-  getById('save-btn')?.addEventListener('click', () => {
-    const btn = getById('save-btn');
-    const originalText = btn.textContent;
-    btn.textContent = 'Saving...';
-    btn.disabled = true;
-    
-    saveAllSettings();
-    
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.disabled = false;
-    }, 1000);
+  // Save
+  getById('save-btn')?.addEventListener('click', save);
+
+  // Reset
+  getById('reset-btn')?.addEventListener('click', () => {
+    if (confirm('reset all settings to defaults?')) postMessage('resetSettings');
   });
 
-  // Reset button
-  getById('reset-btn')?.addEventListener('click', () => {
-    if(confirm('Reset all settings to default?')) {
-        postMessage('resetSettings');
-    }
+  // Reveal / hide passwords
+  getById('reveal-btn')?.addEventListener('click', () => {
+    keysRevealed = !keysRevealed;
+    PROVIDERS.forEach(p => {
+      const input = getById(`key-${p}`);
+      if (input) input.type = keysRevealed ? 'text' : 'password';
+    });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key === 's') { e.preventDefault(); save(); }
+    if (mod && e.key === 'r') { e.preventDefault(); if (confirm('reset all settings to defaults?')) postMessage('resetSettings'); }
   });
 }
 
-function renderSettings() {
+function save() {
+  const btn = getById('save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'saving…'; }
+
+  const newSettings = {
+    ...currentSettings,
+    defaultProvider:     getById('default-provider').value,
+    defaultDiagramType:  getById('default-type').value,
+    defaultColorPalette: getById('default-palette').value,
+    defaultComplexity:   getById('default-complexity').value,
+  };
+
+  const apiKeys = {};
+  PROVIDERS.forEach(p => {
+    const input = getById(`key-${p}`);
+    if (input && input.value) apiKeys[p] = input.value;
+  });
+
+  postMessage('saveSettings', { settings: newSettings, apiKeys });
+}
+
+function render() {
   if (!currentSettings) return;
 
-  // Update status text based on configured providers
-  Object.entries(currentProviders).forEach(([provider, configured]) => {
-    const statusEl = getById(`status-${provider}`);
-    if (statusEl) {
-        if (configured) {
-            statusEl.textContent = 'Configured';
-            statusEl.style.color = 'var(--color-success)'; // Green for configured
-        } else {
-            statusEl.textContent = 'Not Configured';
-            statusEl.style.color = 'var(--color-text-secondary)';
-        }
-    }
+  Object.entries(currentProviders || {}).forEach(([provider, configured]) => {
+    if (configured) setStatus(provider, 'ok', 'configured');
+    else            setStatus(provider, '',   'unset');
   });
 
-  // General Settings
-  setSelectValue('default-provider', currentSettings.defaultProvider);
-  setSelectValue('default-type', currentSettings.defaultDiagramType);
-  setSelectValue('default-palette', currentSettings.defaultColorPalette);
-  setSelectValue('default-complexity', currentSettings.defaultComplexity);
+  setSelect('default-provider',   currentSettings.defaultProvider);
+  setSelect('default-type',       currentSettings.defaultDiagramType);
+  setSelect('default-palette',    currentSettings.defaultColorPalette);
+  setSelect('default-complexity', currentSettings.defaultComplexity);
 }
 
-function setSelectValue(id, value) {
+function setStatus(provider, state, text) {
+  const el = getById(`status-${provider}`);
+  if (!el) return;
+  el.className = 'status' + (state ? ' ' + state : '');
+  el.textContent = text;
+}
+
+function setSelect(id, value) {
   const el = getById(id);
   if (el) el.value = value || '';
-}
-
-function saveAllSettings() {
-  const newSettings = { ...currentSettings };
-  
-  // Get values from form
-  newSettings.defaultProvider = getById('default-provider').value;
-  newSettings.defaultDiagramType = getById('default-type').value;
-  newSettings.defaultColorPalette = getById('default-palette').value;
-  newSettings.defaultComplexity = getById('default-complexity').value;
-
-  // Get API keys
-  const apiKeys = {};
-  const providers = ['openai', 'anthropic', 'google', 'flowcraft'];
-  
-  providers.forEach(provider => {
-    const input = getById(`key-${provider}`);
-    // Only update if value is present (empty fields might mean "keep existing" or "clear" depends on backend)
-    // Assuming backend handles empty string as "don't update" or we send all. 
-    // If user allows clearing, we might need a clearer UI for "Clear Key".
-    // For now, send if value exists.
-    if (input && input.value) {
-      apiKeys[provider] = input.value;
-    }
-  });
-
-  postMessage('saveSettings', {
-    settings: newSettings,
-    apiKeys
-  });
 }

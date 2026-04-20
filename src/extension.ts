@@ -54,75 +54,26 @@ async function promptForProviderApiKey(
   apiKeyService: APIKeyService,
   provider: Provider
 ): Promise<string | undefined> {
-  // Get provider-specific validation info
-  let prompt = "";
-  let placeholder = "";
-  let validateInput: (value: string) => string | null;
-
-  switch (provider) {
-    case Provider.OpenAI:
-      prompt = "Please enter your OpenAI API key (starts with 'sk-')";
-      placeholder = "sk-...";
-      validateInput = (value: string) => {
-        if (!value.startsWith("sk-")) {
-          return 'OpenAI API key should start with "sk-"';
-        }
-        if (value.length < 20) {
-          return "Invalid API key length";
-        }
-        return null;
-      };
-      break;
-    case Provider.Anthropic:
-      prompt = "Please enter your Anthropic API key (starts with 'sk-ant-')";
-      placeholder = "sk-ant-...";
-      validateInput = (value: string) => {
-        if (!value.startsWith("sk-ant-")) {
-          return 'Anthropic API key should start with "sk-ant-"';
-        }
-        if (value.length < 20) {
-          return "Invalid API key length";
-        }
-        return null;
-      };
-      break;
-    case Provider.Google:
-      prompt = "Please enter your Google (Gemini) API key";
-      placeholder = "Your Google API key";
-      validateInput = (value: string) => {
-        if (value.length < 20) {
-          return "Invalid API key length";
-        }
-        return null;
-      };
-      break;
-    case Provider.FlowCraft:
-      prompt = "Please enter your FlowCraft API key";
-      placeholder = "Your FlowCraft API key";
-      validateInput = (value: string) => {
-        if (value.length < 10) {
-          return "Invalid API key length";
-        }
-        return null;
-      };
-      break;
-    default:
-      prompt = `Please enter your ${provider} API key`;
-      placeholder = "API key";
-      validateInput = (value: string) => {
-        if (value.length < 10) {
-          return "Invalid API key length";
-        }
-        return null;
-      };
-  }
+  const specs: Record<string, { title: string; prompt: string; placeholder: string; prefix?: string; minLen: number }> = {
+    [Provider.OpenAI]:    { title: "api.openai",    prompt: "Paste your OpenAI key · stored in vscode.secrets",        placeholder: "sk-…",      prefix: "sk-",     minLen: 20 },
+    [Provider.Anthropic]: { title: "api.anthropic", prompt: "Paste your Anthropic key · stored in vscode.secrets",     placeholder: "sk-ant-…",  prefix: "sk-ant-", minLen: 20 },
+    [Provider.Google]:    { title: "api.google",    prompt: "Paste your Google (Gemini) key · stored in vscode.secrets", placeholder: "AIza…",   prefix: "AIza",    minLen: 20 },
+    [Provider.FlowCraft]: { title: "api.flowcraft", prompt: "Paste your FlowCraft token · stored in vscode.secrets",   placeholder: "fc_…",      prefix: "fc_",     minLen: 10 },
+  };
+  const spec = specs[provider] ?? { title: `api.${provider}`, prompt: `Enter your ${provider} API key`, placeholder: "key…", minLen: 10 };
 
   const apiKey = await vscode.window.showInputBox({
-    prompt,
-    placeHolder: placeholder,
+    title: `FlowCraft · ${spec.title}`,
+    prompt: spec.prompt,
+    placeHolder: spec.placeholder,
     password: true,
     ignoreFocusOut: true,
-    validateInput,
+    validateInput: (value: string) => {
+      if (!value) return "Key is required";
+      if (spec.prefix && !value.startsWith(spec.prefix)) return `Expected prefix "${spec.prefix}"`;
+      if (value.length < spec.minLen) return "Key looks too short";
+      return null;
+    },
   });
 
   if (apiKey) {
@@ -130,6 +81,61 @@ async function promptForProviderApiKey(
     return apiKey;
   }
   return undefined;
+}
+
+/** Show an API-key error with an "Open Settings" action. */
+function showApiKeyError(provider: string): void {
+  vscode.window
+    .showErrorMessage(
+      `FlowCraft needs a ${provider} API key to generate diagrams.`,
+      "Open Settings",
+      "Dismiss"
+    )
+    .then((choice) => {
+      if (choice === "Open Settings") {
+        vscode.commands.executeCommand("flowcraft.openSettings");
+      }
+    });
+}
+
+/** Collapse verbose upstream errors (litellm / openai / anthropic) into a short toast. */
+function humanizeError(raw: string): { title: string; detail?: string; action?: "billing" | "settings" } {
+  const msg = (raw || "").toLowerCase();
+  if (msg.includes("ratelimiterror") || msg.includes("rate limit") || msg.includes("exceeded your current quota") || msg.includes("insufficient_quota")) {
+    return {
+      title: "Provider quota exceeded",
+      detail: "Your API key has hit its rate limit or quota. Check your billing, then retry.",
+      action: "billing",
+    };
+  }
+  if (msg.includes("authenticationerror") || msg.includes("invalid api key") || msg.includes("incorrect api key") || msg.includes("401")) {
+    return {
+      title: "Invalid API key",
+      detail: "The stored key was rejected by the provider. Open settings to re-enter it.",
+      action: "settings",
+    };
+  }
+  if (msg.includes("403") || msg.includes("permission")) {
+    return { title: "Key lacks permission", detail: "Your key doesn't have access to the requested model." , action: "settings" };
+  }
+  if (msg.includes("timeout") || msg.includes("econnreset") || msg.includes("network")) {
+    return { title: "Network error", detail: "FlowCraft couldn't reach the API. Check your connection and retry." };
+  }
+  // Fallback: strip wrappers like "Failed to generate diagram: litellm.XxxError:"
+  const cleaned = raw.replace(/^(failed to generate diagram:\s*)?(litellm\.[A-Za-z]+Error:\s*)?/i, "").trim();
+  return { title: "Generation failed", detail: cleaned.slice(0, 180) };
+}
+
+/** Open the rendered diagram in the browser with a toast fallback. */
+function openDiagramResult(id: string): void {
+  const url = `https://flowcraft.app/vscode/${id}`;
+  vscode.env.openExternal(vscode.Uri.parse(url));
+  vscode.window
+    .showInformationMessage("Diagram ready.", "Open Diagram", "Copy Link")
+    .then((choice) => {
+      if (choice === "Open Diagram") vscode.env.openExternal(vscode.Uri.parse(url));
+      else if (choice === "Copy Link") vscode.env.clipboard.writeText(url);
+    });
 }
 
 async function ensureProviderApiKey(
@@ -231,63 +237,62 @@ export async function activate(context: vscode.ExtensionContext) {
       } else if (type === "image") {
         vscode.window.showInformationMessage("Image generation coming soon!");
       } else {
-        // Show diagram type selection
-        const diagramTypes = [
-          "FlowChart",
-          "Sequence Diagram",
-          "Class Diagram",
-          "State Diagram",
-          "Entity Relationship Diagram",
-          "User Journey",
-          "Gantt",
-          "Pie Chart",
-          "Quadrant Chart",
-          "Requirement Diagram",
-          "Gitgraph (Git) Diagram",
-          "Mindmaps",
-          "Timeline",
-          "Zenuml",
-          "Sankey",
-          "Treemap",
+        type DiagramItem = vscode.QuickPickItem & { value?: string };
+        const diagramItems: DiagramItem[] = [
+          { label: "Software", kind: vscode.QuickPickItemKind.Separator },
+          { label: "$(symbol-event) FlowChart",          description: "control flow · decisions",         value: "FlowChart",                     detail: "graph TD …" },
+          { label: "$(arrow-both) Sequence Diagram",     description: "message passing between actors",   value: "Sequence Diagram",              detail: "sequenceDiagram …" },
+          { label: "$(symbol-class) Class Diagram",      description: "uml · classes · relationships",    value: "Class Diagram",                 detail: "classDiagram …" },
+          { label: "$(symbol-enum) State Diagram",       description: "states · transitions",             value: "State Diagram",                 detail: "stateDiagram-v2 …" },
+          { label: "$(database) Entity Relationship",    description: "er · schema · tables",             value: "Entity Relationship Diagram",   detail: "erDiagram …" },
+
+          { label: "Planning", kind: vscode.QuickPickItemKind.Separator },
+          { label: "$(calendar) Gantt",                  description: "project timeline",                 value: "Gantt" },
+          { label: "$(pie-chart) Pie Chart",             description: "proportional breakdown",           value: "Pie Chart" },
+          { label: "$(milestone) Timeline",              description: "events on an axis",                value: "Timeline" },
+          { label: "$(organization) Mindmaps",           description: "hierarchical ideas",               value: "Mindmaps" },
+          { label: "$(list-tree) Requirement Diagram",   description: "requirements traceability",       value: "Requirement Diagram" },
+
+          { label: "Advanced", kind: vscode.QuickPickItemKind.Separator },
+          { label: "$(person) User Journey",             description: "user experience flow",             value: "User Journey" },
+          { label: "$(git-branch) Gitgraph",             description: "branch · merge visualisation",    value: "Gitgraph (Git) Diagram" },
+          { label: "$(graph-scatter) Quadrant Chart",    description: "2x2 matrix",                       value: "Quadrant Chart" },
+          { label: "$(zap) Zenuml",                      description: "sequence · z-style",               value: "Zenuml" },
+          { label: "$(symbol-color) Sankey",             description: "weighted flows",                   value: "Sankey" },
+          { label: "$(symbol-structure) Treemap",        description: "nested rectangles",                value: "Treemap" },
         ];
 
-        const selectedType = await vscode.window.showQuickPick(diagramTypes, {
-          placeHolder: "Select diagram type to generate",
+        const picked = await vscode.window.showQuickPick(diagramItems, {
+          title: "FlowCraft · generate",
+          placeHolder: "Pick a diagram type  (type to filter)",
+          matchOnDescription: true,
+          matchOnDetail: true,
         });
 
-        if (!selectedType) {
+        if (!picked || !picked.value) {
           return;
         }
-
-        // Map display names to DiagramType enum values
+        const selectedType = picked.value;
 
         // Ask for code input method
-        const inputMethods = [
-          {
-            label: "Paste Code",
-            description: "Paste code or description directly",
-          },
-          {
-            label: "Select File",
-            description: "Choose a file from your workspace",
-          },
-          {
-            label: "Use Current Selection",
-            description: "Use selected text from the active editor",
-          },
-          {
-            label: "Use Current File",
-            description: "Use entire content of the active file",
-          },
+        type InputItem = vscode.QuickPickItem & { value: string };
+        const inputMethods: InputItem[] = [
+          { label: "$(selection) Use current selection", description: "highlighted text from the active editor",          value: "Use Current Selection" },
+          { label: "$(file-code) Use current file",     description: "entire content of the active file (≤10k chars)",   value: "Use Current File" },
+          { label: "$(folder-opened) Pick a file…",     description: "choose any file from your workspace",              value: "Select File" },
+          { label: "$(edit) Paste code or description", description: "free-form input · prompt-style",                    value: "Paste Code" },
         ];
 
-        const inputMethod = await vscode.window.showQuickPick(inputMethods, {
-          placeHolder: "How would you like to provide the code/description?",
+        const pickedInput = await vscode.window.showQuickPick(inputMethods, {
+          title: `FlowCraft · source for ${selectedType}`,
+          placeHolder: "How should we read the source?",
+          matchOnDescription: true,
         });
 
-        if (!inputMethod) {
+        if (!pickedInput) {
           return;
         }
+        const inputMethod = { label: pickedInput.value };
 
         let codeContent = "";
 
@@ -378,26 +383,21 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: `Generating ${selectedType} from FlowCraft`,
+            title: `flowcraft › ${selectedType.toLowerCase()}`,
             cancellable: false,
           },
           async (progress, _token) => {
-            progress.report({ increment: 0 });
+            progress.report({ message: "checking credentials…", increment: 10 });
 
             try {
-              progress.report({ increment: 20 });
-
               // Get API key based on default provider
               const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
               if (!apiKey) {
-                const defaultProvider = stateManager.getSetting("defaultProvider");
-                vscode.window.showErrorMessage(
-                  `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
-                );
+                showApiKeyError(stateManager.getSetting("defaultProvider"));
                 return;
               }
 
-              progress.report({ increment: 40 });
+              progress.report({ message: "sending prompt to model…", increment: 40 });
 
               const flowCraftApiUrl =
                 process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL;
@@ -435,7 +435,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
               );
 
-              progress.report({ increment: 80 });
+              progress.report({ message: "rendering mermaid…", increment: 40 });
 
               if (!response.ok) {
                 const errorData: any = await response.json().catch(() => ({}));
@@ -446,44 +446,51 @@ export async function activate(context: vscode.ExtensionContext) {
               }
 
               const data: any = await response.json();
-              console.log("RESPONSE Data: ", data);
-
               const _res = data.response;
-              const diagram = _res.mermaid_code;
               const inserted_diagram = _res.inserted_diagram;
-
-              console.log("Diagram: ", diagram);
-              console.log("Inserted Diagram: ", inserted_diagram);
 
               if (
                 inserted_diagram &&
                 inserted_diagram.data &&
                 inserted_diagram.data.length > 0
               ) {
-                progress.report({ increment: 100 });
-
-                const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
-                vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
-
-                vscode.window
-                  .showInformationMessage(
-                    "The diagram has been successfully generated. If the diagram does not open automatically, please click on the link below.",
-                    "Open Diagram"
-                  )
-                  .then((selection) => {
-                    if (selection === "Open Diagram") {
-                      vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
-                    }
-                  });
+                progress.report({ message: "done", increment: 10 });
+                openDiagramResult(inserted_diagram.data[0].id);
               } else {
                 vscode.window.showErrorMessage(
-                  "An error occurred while generating the diagram. Please try again later."
+                  "FlowCraft didn't return a diagram. Try again or tweak your prompt."
                 );
               }
             } catch (error: any) {
-              vscode.window.showErrorMessage(
-                `An error occurred while generating the diagram: ${error.message}`
-              );
+              const friendly = humanizeError(error?.message ?? String(error));
+              const actions = friendly.action === "billing"
+                ? ["Open Billing", "Switch Provider", "Retry"]
+                : friendly.action === "settings"
+                ? ["Open Settings", "Retry"]
+                : ["Retry", "Open Settings"];
+              vscode.window
+                .showErrorMessage(
+                  friendly.detail ? `${friendly.title} · ${friendly.detail}` : friendly.title,
+                  ...actions
+                )
+                .then((choice) => {
+                  if (choice === "Retry") {
+                    vscode.commands.executeCommand("flowcraft.openGenerationView");
+                  } else if (choice === "Open Settings") {
+                    vscode.commands.executeCommand("flowcraft.openSettings");
+                  } else if (choice === "Switch Provider") {
+                    vscode.commands.executeCommand("flowcraft.openSettings");
+                  } else if (choice === "Open Billing") {
+                    const prov = stateManager.getSetting("defaultProvider");
+                    const billing: Record<string, string> = {
+                      openai: "https://platform.openai.com/account/billing",
+                      anthropic: "https://console.anthropic.com/settings/billing",
+                      google: "https://aistudio.google.com/app/apikey",
+                      flowcraft: "https://flowcraft.app/dashboard/billing",
+                    };
+                    vscode.env.openExternal(vscode.Uri.parse(billing[prov] || "https://flowcraft.app"));
+                  }
+                });
               console.error("Error generating diagram:", error);
             }
           }
@@ -497,17 +504,29 @@ export async function activate(context: vscode.ExtensionContext) {
     async () => {
       const recent = await diagramService.getRecent();
       if (recent.length === 0) {
-        vscode.window.showInformationMessage("No diagram history found.");
+        vscode.window
+          .showInformationMessage(
+            "No diagrams yet. Generate one to populate your history.",
+            "Generate"
+          )
+          .then((choice) => {
+            if (choice === "Generate") {
+              vscode.commands.executeCommand("flowcraft.openGenerationView");
+            }
+          });
         return;
       }
       const items = recent.map((d) => ({
-        label: d.title,
+        label: `$(graph) ${d.title}`,
         description: d.type,
         detail: d.description,
         id: d.id,
       }));
       const selection = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a diagram to view",
+        title: "FlowCraft · history",
+        placeHolder: `${recent.length} recent diagram${recent.length === 1 ? "" : "s"} · type to filter`,
+        matchOnDescription: true,
+        matchOnDetail: true,
       });
       if (selection) {
         const diagramUrl = `https://flowcraft.app/vscode/${selection.id}`;
@@ -532,7 +551,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Generating Diagram from FlowCraft",
+          title: "flowcraft › generating",
           cancellable: false,
         },
         (progress, _token) => {
@@ -580,10 +599,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
-              const defaultProvider = stateManager.getSetting("defaultProvider");
-              vscode.window.showErrorMessage(
-                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
-              );
+              showApiKeyError(stateManager.getSetting("defaultProvider"));
               return;
             }
 
@@ -657,7 +673,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Generating Diagram from FlowCraft",
+          title: "flowcraft › generating",
           cancellable: false,
         },
         (progress, _token) => {
@@ -698,10 +714,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
-              const defaultProvider = stateManager.getSetting("defaultProvider");
-              vscode.window.showErrorMessage(
-                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
-              );
+              showApiKeyError(stateManager.getSetting("defaultProvider"));
               return;
             }
 
@@ -768,7 +781,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Generating Diagram from FlowCraft",
+          title: "flowcraft › generating",
           cancellable: false,
         },
         (progress, _token) => {
@@ -798,10 +811,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
-              const defaultProvider = stateManager.getSetting("defaultProvider");
-              vscode.window.showErrorMessage(
-                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
-              );
+              showApiKeyError(stateManager.getSetting("defaultProvider"));
               return;
             }
 
@@ -869,7 +879,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Generating Diagram from FlowCraft",
+          title: "flowcraft › generating",
           cancellable: false,
         },
         (progress, _token) => {
@@ -899,10 +909,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
             if (!apiKey) {
-              const defaultProvider = stateManager.getSetting("defaultProvider");
-              vscode.window.showErrorMessage(
-                `FlowCraft needs a ${defaultProvider} API key to function. Please configure it in the settings.`
-              );
+              showApiKeyError(stateManager.getSetting("defaultProvider"));
               return;
             }
 

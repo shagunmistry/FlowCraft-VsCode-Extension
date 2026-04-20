@@ -34,6 +34,7 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
     // Handle messages from webview
     setupMessageListener(webviewView.webview, {
       generateDiagram: async () => { await vscode.commands.executeCommand('flowcraft.openGenerationView'); },
+      generateFromSelection: async () => { await vscode.commands.executeCommand('flowcraft.generateFromSelection'); },
       createInfographic: async () => { await vscode.commands.executeCommand('flowcraft.openGenerationView', 'infographic'); },
       generateImage: async () => { await vscode.commands.executeCommand('flowcraft.openGenerationView', 'image'); },
       viewHistory: async () => { await vscode.commands.executeCommand('flowcraft.showHistory'); },

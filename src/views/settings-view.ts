@@ -37,7 +37,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       loadSettings: async () => this.sendSettingsData(),
       saveSettings: async (data: any) => this.saveSettings(data),
       testConnection: async (data: { provider: string, apiKey: string }) => this.testConnection(data),
-      resetSettings: async () => this.resetSettings()
+      resetSettings: async () => this.resetSettings(),
+      resetApiKeys: async () => { await vscode.commands.executeCommand('flowcraft.resetApiKey'); }
     });
 
     // Update on state changes

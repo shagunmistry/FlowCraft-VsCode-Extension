@@ -8,7 +8,7 @@
     "url": "https://github.com/shagunmistry/FlowCraft-VsCode-Extension.git"
   },
   "icon": "FlowCraftLogo_New.png",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -106,39 +106,9 @@
         "icon": "$(file-code)"
       },
       {
-        "command": "flowcraft.viewDiagram",
-        "title": "FlowCraft: View Diagram",
-        "icon": "$(eye)"
-      },
-      {
-        "command": "flowcraft.exportDiagram",
-        "title": "FlowCraft: Export Diagram",
-        "icon": "$(export)"
-      },
-      {
-        "command": "flowcraft.deleteDiagram",
-        "title": "FlowCraft: Delete Diagram",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "flowcraft.regenerateDiagram",
-        "title": "FlowCraft: Regenerate Diagram",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "flowcraft.duplicateDiagram",
-        "title": "FlowCraft: Duplicate Diagram",
-        "icon": "$(copy)"
-      },
-      {
         "command": "flowcraft.syncUsage",
         "title": "FlowCraft: Sync Usage Stats",
         "icon": "$(sync)"
-      },
-      {
-        "command": "flowcraft.refreshHistory",
-        "title": "FlowCraft: Refresh History",
-        "icon": "$(refresh)"
       },
       {
         "command": "flowcraft.generateFlowDiagram",
@@ -190,28 +160,6 @@
         {
           "command": "flowcraft.generateFromFile",
           "group": "flowcraft@1"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "flowcraft.viewDiagram",
-          "when": "false"
-        },
-        {
-          "command": "flowcraft.exportDiagram",
-          "when": "false"
-        },
-        {
-          "command": "flowcraft.deleteDiagram",
-          "when": "false"
-        },
-        {
-          "command": "flowcraft.regenerateDiagram",
-          "when": "false"
-        },
-        {
-          "command": "flowcraft.duplicateDiagram",
-          "when": "false"
         }
       ]
     },

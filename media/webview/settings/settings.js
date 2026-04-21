@@ -82,6 +82,11 @@ function wire() {
     if (confirm('Reset all settings to their defaults? Your API keys will be kept.')) postMessage('resetSettings');
   });
 
+  // Reset API keys — delegates to the flowcraft.resetApiKey command
+  getById('reset-keys-btn')?.addEventListener('click', () => {
+    postMessage('resetApiKeys');
+  });
+
   // Reveal / hide passwords
   getById('reveal-btn')?.addEventListener('click', () => {
     keysRevealed = !keysRevealed;

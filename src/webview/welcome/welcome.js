@@ -4,6 +4,7 @@ import { getById } from '../shared/utils/dom.js';
 const ACTIONS = [
   { id: 'action-diagram',     command: 'generateDiagram' },
   { id: 'action-selection',   command: 'generateFromSelection' },
+  { id: 'action-file',        command: 'generateFromFile' },
   { id: 'action-infographic', command: 'createInfographic' },
   { id: 'action-image',       command: 'generateImage' },
   { id: 'action-history',     command: 'viewHistory' },
@@ -51,6 +52,20 @@ function wireLinks() {
     settings.addEventListener('click', (e) => {
       e.preventDefault();
       postMessage('openSettings');
+    });
+  }
+  const resetKeys = getById('link-reset-keys');
+  if (resetKeys) {
+    resetKeys.addEventListener('click', (e) => {
+      e.preventDefault();
+      postMessage('resetApiKeys');
+    });
+  }
+  const syncUsage = getById('link-sync-usage');
+  if (syncUsage) {
+    syncUsage.addEventListener('click', (e) => {
+      e.preventDefault();
+      postMessage('syncUsage');
     });
   }
 }

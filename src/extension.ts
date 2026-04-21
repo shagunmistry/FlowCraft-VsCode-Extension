@@ -8,7 +8,7 @@ import { FlowCraftClient } from "./api/flowcraft-client";
 import { WelcomeViewProvider } from "./views/welcome-view";
 import { SettingsViewProvider } from "./views/settings-view";
 import { initLogger } from "./utils/logger";
-import { Provider } from "./types";
+import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
 const OPENAI_KEY_SECRET = "flowcraft.openai.key";
@@ -48,6 +48,36 @@ async function getProviderApiKey(
   provider: Provider
 ): Promise<string | undefined> {
   return await apiKeyService.retrieve(provider);
+}
+
+function persistRawFetchDiagram(
+  stateManager: StateManager,
+  params: {
+    id: string;
+    title: string;
+    description: string;
+    type: DiagramType;
+    mermaidCode: string;
+  }
+): void {
+  try {
+    const now = new Date();
+    const diagram: Diagram = {
+      id: params.id,
+      title: params.title,
+      description: params.description,
+      type: params.type,
+      category: DiagramCategory.Mermaid,
+      content: params.mermaidCode ?? "",
+      isPublic: false,
+      createdAt: now,
+      updatedAt: now,
+      tokensUsed: 0,
+    };
+    stateManager.addDiagram(diagram);
+  } catch (err) {
+    console.error("Failed to persist diagram to history:", err);
+  }
 }
 
 async function promptForProviderApiKey(
@@ -212,10 +242,41 @@ export async function activate(context: vscode.ExtensionContext) {
   let resetKeyCommand = vscode.commands.registerCommand(
     "flowcraft.resetApiKey",
     async () => {
+      type ResetItem = vscode.QuickPickItem & { value: "all" | Provider };
+      const items: ResetItem[] = [
+        { label: "$(trash) All providers", description: "clear every stored key", value: "all" },
+        { label: "OpenAI",    value: Provider.OpenAI },
+        { label: "Anthropic", value: Provider.Anthropic },
+        { label: "Google",    value: Provider.Google },
+        { label: "FlowCraft", value: Provider.FlowCraft },
+      ];
+      const picked = await vscode.window.showQuickPick(items, {
+        title: "FlowCraft · reset API key",
+        placeHolder: "Which provider key would you like to clear?",
+      });
+      if (!picked) return;
+
+      // Also scrub the legacy single-provider secret if it still exists.
       await context.secrets.delete(OPENAI_KEY_SECRET);
-      vscode.window.showInformationMessage(
-        "API key has been reset. You will be prompted for a new key on next use."
-      );
+
+      if (picked.value === "all") {
+        await apiKeyService.clearAll();
+        vscode.window.showInformationMessage(
+          "All FlowCraft provider keys have been cleared. You will be prompted on next use."
+        );
+      } else {
+        await apiKeyService.delete(picked.value);
+        vscode.window.showInformationMessage(
+          `${picked.value} API key has been cleared. You will be prompted on next use.`
+        );
+      }
+    }
+  );
+
+  let openWelcomeCommand = vscode.commands.registerCommand(
+    "flowcraft.openWelcome",
+    async () => {
+      await vscode.commands.executeCommand("flowcraft.welcomeView.focus");
     }
   );
 
@@ -227,15 +288,134 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  let syncUsageCommand = vscode.commands.registerCommand(
+    "flowcraft.syncUsage",
+    async () => {
+      try {
+        const usage = await usageService.syncFromAPI();
+        const label = usage.subscribed
+          ? `Pro · ${usage.diagramsCreated} diagram${usage.diagramsCreated === 1 ? "" : "s"} created`
+          : `${usage.diagramsCreated} of ${usage.freeLimit} used · ${Math.max(0, usage.freeLimit - usage.diagramsCreated)} left`;
+        vscode.window.showInformationMessage(`FlowCraft usage · ${label}`);
+      } catch (error: any) {
+        const msg = error?.message ?? String(error);
+        if (msg.toLowerCase().includes("no api key")) {
+          showApiKeyError(stateManager.getSetting("defaultProvider"));
+        } else {
+          vscode.window.showErrorMessage(`Couldn't sync usage · ${msg}`);
+        }
+      }
+    }
+  );
+
+  async function runVisualGeneration(
+    kind: "infographic" | "illustration"
+  ): Promise<void> {
+    const prompt = await vscode.window.showInputBox({
+      title: `FlowCraft · ${kind}`,
+      prompt: `Describe the ${kind} you want FlowCraft to produce`,
+      placeHolder: kind === "infographic"
+        ? "e.g. A 4-step infographic explaining OAuth 2.0"
+        : "e.g. An isometric illustration of a cloud deployment pipeline",
+      ignoreFocusOut: true,
+      validateInput: (value: string) => {
+        if (!value || value.trim().length === 0) return "Please provide a description";
+        if (value.length > 10000) return "Description is too long (max 10,000 characters)";
+        return null;
+      },
+    });
+    if (!prompt) return;
+
+    const palettePick = await vscode.window.showQuickPick(
+      [
+        { label: "Brand colors", value: "brand colors" },
+        { label: "Monochromatic", value: "monochromatic" },
+        { label: "Complementary", value: "complementary" },
+        { label: "Analogous", value: "analogous" },
+      ],
+      {
+        title: `FlowCraft · ${kind} · palette`,
+        placeHolder: "Pick a color palette",
+      }
+    );
+    if (!palettePick) return;
+
+    const complexityPick = await vscode.window.showQuickPick(
+      [
+        { label: "Simple",  value: "simple"  as const },
+        { label: "Medium",  value: "medium"  as const },
+        { label: "Detailed",value: "complex" as const },
+      ],
+      {
+        title: `FlowCraft · ${kind} · detail`,
+        placeHolder: "How much detail?",
+      }
+    );
+    if (!complexityPick) return;
+
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `flowcraft › ${kind}`,
+        cancellable: false,
+      },
+      async (progress) => {
+        progress.report({ message: "checking credentials…", increment: 10 });
+        const apiKey = await ensureProviderApiKey(stateManager, apiKeyService);
+        if (!apiKey) {
+          showApiKeyError(stateManager.getSetting("defaultProvider"));
+          return;
+        }
+
+        progress.report({ message: "sending prompt to model…", increment: 40 });
+
+        try {
+          const result = await diagramService.generate({
+            prompt,
+            type: kind === "infographic" ? DiagramType.Infographic : DiagramType.Illustration,
+            colorPalette: palettePick.value,
+            complexityLevel: complexityPick.value,
+            isPublic: stateManager.getSetting("defaultPrivacy") !== "private",
+          });
+
+          progress.report({ message: "rendering…", increment: 40 });
+
+          if (result?.id) {
+            progress.report({ message: "done", increment: 10 });
+            openDiagramResult(result.id);
+          } else {
+            vscode.window.showErrorMessage(
+              `FlowCraft didn't return a ${kind}. Try again or tweak your prompt.`
+            );
+          }
+        } catch (error: any) {
+          const friendly = humanizeError(error?.message ?? String(error));
+          vscode.window
+            .showErrorMessage(
+              friendly.detail ? `${friendly.title} · ${friendly.detail}` : friendly.title,
+              "Retry",
+              "Open Settings"
+            )
+            .then((choice) => {
+              if (choice === "Retry") {
+                vscode.commands.executeCommand("flowcraft.openGenerationView", kind);
+              } else if (choice === "Open Settings") {
+                vscode.commands.executeCommand("flowcraft.openSettings");
+              }
+            });
+          console.error(`Error generating ${kind}:`, error);
+        }
+      }
+    );
+  }
+
   let openGenerationViewCommand = vscode.commands.registerCommand(
     "flowcraft.openGenerationView",
     async (type?: string) => {
       if (type === "infographic") {
-        vscode.window.showInformationMessage(
-          "Infographic generation coming soon!"
-        );
-      } else if (type === "image") {
-        vscode.window.showInformationMessage("Image generation coming soon!");
+        await runVisualGeneration("infographic");
+      } else if (type === "image" || type === "illustration") {
+        await runVisualGeneration("illustration");
       } else {
         type DiagramItem = vscode.QuickPickItem & { value?: string };
         const diagramItems: DiagramItem[] = [
@@ -631,7 +811,17 @@ export async function activate(context: vscode.ExtensionContext) {
                   inserted_diagram.data.length > 0
                 ) {
                   progress.report({ increment: 100 });
-                  const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
+                  const diagramId = inserted_diagram.data[0].id;
+
+                  persistRawFetchDiagram(stateManager, {
+                    id: diagramId,
+                    title: title ?? "Untitled diagram",
+                    description: fileContent,
+                    type: DiagramType.Flowchart,
+                    mermaidCode: diagram,
+                  });
+
+                  const diagramUrl = `https://flowcraft.app/vscode/${diagramId}`;
 
                   vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
 
@@ -744,7 +934,17 @@ export async function activate(context: vscode.ExtensionContext) {
                   inserted_diagram.data.length > 0
                 ) {
                   progress.report({ increment: 100 });
-                  const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
+                  const diagramId = inserted_diagram.data[0].id;
+
+                  persistRawFetchDiagram(stateManager, {
+                    id: diagramId,
+                    title: title ?? "Untitled diagram",
+                    description: selection,
+                    type: DiagramType.Flowchart,
+                    mermaidCode: diagram,
+                  });
+
+                  const diagramUrl = `https://flowcraft.app/vscode/${diagramId}`;
 
                   vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
                   vscode.window
@@ -841,7 +1041,17 @@ export async function activate(context: vscode.ExtensionContext) {
                   inserted_diagram.data.length > 0
                 ) {
                   progress.report({ increment: 100 });
-                  const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
+                  const diagramId = inserted_diagram.data[0].id;
+
+                  persistRawFetchDiagram(stateManager, {
+                    id: diagramId,
+                    title: title ?? "Untitled diagram",
+                    description: fileContext,
+                    type: DiagramType.Class,
+                    mermaidCode: diagram,
+                  });
+
+                  const diagramUrl = `https://flowcraft.app/vscode/${diagramId}`;
 
                   vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
 
@@ -939,7 +1149,17 @@ export async function activate(context: vscode.ExtensionContext) {
                   inserted_diagram.data.length > 0
                 ) {
                   progress.report({ increment: 100 });
-                  const diagramUrl = `https://flowcraft.app/vscode/${inserted_diagram.data[0].id}`;
+                  const diagramId = inserted_diagram.data[0].id;
+
+                  persistRawFetchDiagram(stateManager, {
+                    id: diagramId,
+                    title: title ?? "Untitled diagram",
+                    description: selection,
+                    type: DiagramType.Class,
+                    mermaidCode: diagram,
+                  });
+
+                  const diagramUrl = `https://flowcraft.app/vscode/${diagramId}`;
 
                   vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
 
@@ -981,7 +1201,9 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(generateClassDiagramDisposable);
   context.subscriptions.push(generateSelectionClassDiagramDisposable);
   context.subscriptions.push(resetKeyCommand);
+  context.subscriptions.push(openWelcomeCommand);
   context.subscriptions.push(openSettingsCommand);
+  context.subscriptions.push(syncUsageCommand);
   context.subscriptions.push(openGenerationViewCommand);
   context.subscriptions.push(showHistoryCommand);
   context.subscriptions.push(generateFromSelectionCommand);

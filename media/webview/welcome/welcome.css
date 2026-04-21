@@ -1,139 +1,320 @@
-/* Welcome — terminal-pane layout */
+/* Welcome — refined sidebar, Apple/Airbnb-inspired */
+
+:root {
+  --wc-radius: 10px;
+  --wc-radius-sm: 8px;
+  --wc-font-ui: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif);
+  --wc-fs-title: 17px;
+  --wc-fs-tile: 13px;
+  --wc-fs-body: 12.5px;
+  --wc-fs-label: 11px;
+  --wc-pad: 16px;
+}
 
 body { padding: 0; overflow-x: hidden; }
 
 .wc {
   display: flex;
   flex-direction: column;
-  gap: var(--fc-sp-6);
-  padding: var(--fc-sp-5);
+  gap: 20px;
+  padding: 18px var(--wc-pad) 14px;
   min-height: 100vh;
+  font-family: var(--wc-font-ui);
+  font-size: var(--wc-fs-body);
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 
-/* Prompt line ——————————————————————————— */
-.wc-head {
+.wc * { font-family: var(--wc-font-ui); }
+.wc .kbd, .wc kbd { font-family: var(--fc-font-mono); }
+
+/* Header ——————————————————————————— */
+.wc-head { padding-top: 4px; }
+.wc-brand {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--fc-sp-4);
-  padding-bottom: var(--fc-sp-4);
-  border-bottom: 1px dashed var(--fc-border);
+  align-items: center;
+  gap: 12px;
 }
-.wc-prompt {
-  font-family: var(--fc-font-mono);
-  font-size: var(--fc-fs-md);
-  color: var(--fc-fg);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.wc-prompt-user { color: var(--fc-accent); }
-.wc-prompt-sep  { color: var(--fc-fg-dim); }
-.wc-prompt-host { color: var(--fc-fg-muted); }
-.wc-prompt-path { color: var(--fc-fg-muted); margin-left: var(--fc-sp-3); }
-.wc-prompt-caret {
+.wc-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--wc-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--fc-accent) 14%, transparent);
   color: var(--fc-accent);
-  margin-left: var(--fc-sp-3);
-  animation: wc-blink 1.1s steps(1) infinite;
+  flex-shrink: 0;
 }
-@keyframes wc-blink { 50% { opacity: 0; } }
-
-.wc-version {
-  font-size: var(--fc-fs-sm);
-  font-family: var(--fc-font-mono);
+.wc-mark-glyph { font-size: 18px; line-height: 1; }
+.wc-brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wc-title {
+  font-size: var(--wc-fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fc-fg);
+  text-transform: none;
+  line-height: 1.2;
+}
+.wc-subtitle {
+  font-size: var(--wc-fs-body);
+  color: var(--fc-fg-muted);
+  line-height: 1.35;
 }
 
-/* Status block ——————————————————————————— */
-.wc-status {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fc-sp-3);
-  padding: var(--fc-sp-4) var(--fc-sp-5);
+/* Plan card ——————————————————————————— */
+.wc-card {
   background: var(--fc-surface);
   border: 1px solid var(--fc-border);
-  border-radius: var(--fc-radius-1);
+  border-radius: var(--wc-radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.wc-status-row {
+.wc-plan-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--fc-sp-4);
+  gap: 8px;
 }
-.wc-status-label {
-  font-family: var(--fc-font-mono);
-  font-size: var(--fc-fs-sm);
+.wc-plan-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wc-eyebrow {
+  font-size: var(--wc-fs-label);
+  font-weight: 600;
+  color: var(--fc-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.wc .tag {
+  font-family: var(--wc-font-ui);
+  font-size: var(--wc-fs-label);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--fc-bg-alt);
+}
+.wc .tag .dot { width: 6px; height: 6px; }
+
+.wc-upgrade {
+  font-size: var(--wc-fs-body);
+  font-weight: 600;
+  color: var(--fc-accent);
+  border-bottom: none;
+}
+.wc-upgrade:hover { text-decoration: underline; border-bottom: none; }
+
+.wc-card .progress {
+  height: 6px;
+  border-radius: 999px;
+  border: none;
+  background: color-mix(in srgb, var(--fc-fg) 10%, transparent);
+}
+.wc-card .progress > .fill { border-radius: 999px; }
+
+.wc-plan-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--wc-fs-body);
+}
+.wc-usage-text { color: var(--fc-fg); font-weight: 500; }
+.wc-usage-limit { color: var(--fc-fg-muted); }
+
+/* Sections ——————————————————————————— */
+.wc-section-title {
+  font-size: var(--wc-fs-label);
+  font-weight: 600;
   color: var(--fc-fg-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  padding: 0 2px;
 }
-.wc-status-foot { font-size: var(--fc-fs-sm); }
 
 /* Actions ——————————————————————————— */
 .wc-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--fc-sp-3);
+  gap: 6px;
 }
 
-/* Links list ——————————————————————————— */
+.wc-tile {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--wc-radius-sm);
+  cursor: pointer;
+  color: var(--fc-fg);
+  text-align: left;
+  font-family: var(--wc-font-ui);
+  transition: background var(--fc-t-fast), border-color var(--fc-t-fast), transform var(--fc-t-fast);
+}
+.wc-tile:hover:not(:disabled) {
+  background: var(--fc-surface);
+  border-color: var(--fc-border);
+}
+.wc-tile:active:not(:disabled) { transform: scale(0.99); }
+.wc-tile:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.wc-tile:focus-visible {
+  outline: 2px solid var(--fc-border-hi);
+  outline-offset: 1px;
+}
+
+.wc-tile-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fc-bg-alt);
+  color: var(--fc-fg);
+  border-radius: var(--wc-radius-sm);
+  flex-shrink: 0;
+}
+.wc-tile-icon i { font-size: 16px; }
+.wc-tile:hover:not(:disabled) .wc-tile-icon {
+  background: color-mix(in srgb, var(--fc-accent) 14%, transparent);
+  color: var(--fc-accent);
+}
+
+.wc-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.wc-tile-title {
+  font-size: var(--wc-fs-tile);
+  font-weight: 600;
+  color: var(--fc-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.wc-tile-desc {
+  font-size: var(--wc-fs-body);
+  color: var(--fc-fg-muted);
+  line-height: 1.35;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.wc .kbd {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--fc-border);
+  background: var(--fc-bg-alt);
+  color: var(--fc-fg-muted);
+  font-weight: 500;
+}
+
+.tag-soon {
+  color: var(--fc-fg-muted);
+  background: var(--fc-bg-alt);
+}
+
+/* Links ——————————————————————————— */
 .wc-links {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--fc-sp-1);
+  gap: 2px;
 }
 .wc-link {
   display: flex;
   align-items: center;
-  gap: var(--fc-sp-3);
-  padding: var(--fc-sp-2) var(--fc-sp-3);
-  font-family: var(--fc-font-mono);
-  font-size: var(--fc-fs);
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: var(--wc-fs-tile);
   color: var(--fc-fg);
+  border-radius: var(--wc-radius-sm);
   border: 1px solid transparent;
-  border-radius: var(--fc-radius-1);
+  border-bottom: 1px solid transparent;
 }
 .wc-link:hover {
   background: var(--fc-surface);
   border-color: var(--fc-border);
-  border-bottom-color: var(--fc-border); /* override anchor dashed underline */
+  border-bottom-color: var(--fc-border);
 }
-.wc-link-caret { color: var(--fc-fg-dim); }
-.wc-link .kbd, .wc-link .muted { margin-left: auto; }
+.wc-link-icon {
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fc-fg-muted);
+}
+.wc-link-icon i { font-size: 15px; }
+.wc-link-label { flex: 1; font-weight: 500; }
+.wc-link-meta { color: var(--fc-fg-dim); font-size: 11px; }
+.wc-link-meta i { font-size: 12px; }
+.wc-link .kbd { margin-left: auto; }
 
-/* Status line (terminal footer) ——————————————————— */
+/* Footer ——————————————————————————— */
 .wc-foot {
   margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--fc-border);
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--fc-sp-5);
-  padding: var(--fc-sp-3) var(--fc-sp-4);
-  font-family: var(--fc-font-mono);
-  font-size: 10px;
-  color: var(--fc-fg-muted);
-  background: var(--fc-surface);
-  border: 1px solid var(--fc-border);
-  border-radius: var(--fc-radius-1);
-  letter-spacing: 0.04em;
+  flex-direction: column;
+  gap: 6px;
 }
-.wc-foot .dim { color: var(--fc-fg-dim); margin-right: 4px; }
-.wc-foot-cell { display: inline-flex; align-items: center; gap: 4px; }
-.wc-foot kbd { font-size: 9px; padding: 0 4px; }
+.wc-tip {
+  font-size: var(--wc-fs-body);
+  color: var(--fc-fg-muted);
+  line-height: 1.5;
+}
+.wc-tip-label {
+  font-weight: 600;
+  color: var(--fc-fg);
+  margin-right: 4px;
+}
+.wc-tip kbd {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--fc-border);
+  background: var(--fc-bg-alt);
+  color: var(--fc-fg-muted);
+  margin: 0 1px;
+}
+.wc-version {
+  font-size: var(--wc-fs-label);
+  color: var(--fc-fg-dim);
+  letter-spacing: 0.02em;
+}
 
-/* Entrance — one subtle, staggered reveal */
-.wc-head     { animation: wc-in 220ms ease-out both; }
-.wc-status   { animation: wc-in 220ms ease-out 40ms  both; }
-.wc-actions  { animation: wc-in 220ms ease-out 80ms  both; }
-.wc-links    { animation: wc-in 220ms ease-out 120ms both; }
-.wc-foot     { animation: wc-in 220ms ease-out 160ms both; }
+/* Entrance animation ——————————————————————————— */
+.wc-head     { animation: wc-in 260ms ease-out both; }
+.wc-card     { animation: wc-in 260ms ease-out 60ms  both; }
+.wc > section:nth-of-type(2) { animation: wc-in 260ms ease-out 110ms both; }
+.wc > section:nth-of-type(3) { animation: wc-in 260ms ease-out 160ms both; }
+.wc > section:nth-of-type(4) { animation: wc-in 260ms ease-out 210ms both; }
+.wc-foot     { animation: wc-in 260ms ease-out 260ms both; }
 
 @keyframes wc-in {
-  from { opacity: 0; transform: translateY(3px); }
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wc-head, .wc-status, .wc-actions, .wc-links, .wc-foot { animation: none; }
-  .wc-prompt-caret { animation: none; opacity: 1; }
+  .wc-head, .wc-card, .wc > section, .wc-foot { animation: none; }
 }

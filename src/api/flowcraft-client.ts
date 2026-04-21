@@ -78,7 +78,8 @@ export class FlowCraftClient {
       type: this.mapDiagramType(params.type),
       colorPalette: params.colorPalette || 'brand colors',
       complexityLevel: params.complexityLevel || 'medium',
-      is_public: params.isPublic
+      is_public: params.isPublic,
+      model: params.model
     };
 
     const response = await this.makeRequest<DiagramGenerationResponse>(
@@ -114,7 +115,8 @@ export class FlowCraftClient {
       type: 'infographic',
       colorPalette: params.colorPalette || 'brand colors',
       complexityLevel: params.complexityLevel || 'medium',
-      is_public: params.isPublic
+      is_public: params.isPublic,
+      model: params.model
     };
 
     const response = await this.makeRequest<InfographicResponse>(
@@ -150,7 +152,8 @@ export class FlowCraftClient {
       type: 'illustration',
       colorPalette: params.colorPalette || 'brand colors',
       complexityLevel: params.complexityLevel || 'medium',
-      is_public: params.isPublic
+      is_public: params.isPublic,
+      model: params.model
     };
 
     const response = await this.makeRequest<IllustrationResponse>(

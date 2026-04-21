@@ -65,18 +65,26 @@
                     <span class="kbd">⌘⇧G</span>
                 </button>
 
-                <button class="wc-tile" id="action-infographic" data-key="3" disabled>
-                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-graph"></i></span>
+                <button class="wc-tile" id="action-file" data-key="3">
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-file-code"></i></span>
                     <span class="wc-tile-body">
-                        <span class="wc-tile-title">Infographic <span class="tag tag-soon">Coming soon</span></span>
-                        <span class="wc-tile-desc">Visual summaries from data or notes</span>
+                        <span class="wc-tile-title">From current file</span>
+                        <span class="wc-tile-desc">Flowchart of the active editor file (≤10k chars)</span>
                     </span>
                 </button>
 
-                <button class="wc-tile" id="action-image" data-key="4" disabled>
+                <button class="wc-tile" id="action-infographic" data-key="4">
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-graph"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">Infographic</span>
+                        <span class="wc-tile-desc">SVG visual summaries from a prompt</span>
+                    </span>
+                </button>
+
+                <button class="wc-tile" id="action-image" data-key="5">
                     <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-symbol-color"></i></span>
                     <span class="wc-tile-body">
-                        <span class="wc-tile-title">Illustration <span class="tag tag-soon">Coming soon</span></span>
+                        <span class="wc-tile-title">Illustration</span>
                         <span class="wc-tile-desc">AI-rendered images for your docs</span>
                     </span>
                 </button>
@@ -86,7 +94,7 @@
         <section aria-labelledby="wc-library-heading">
             <h2 id="wc-library-heading" class="wc-section-title">Library</h2>
             <nav class="wc-actions" aria-label="Library">
-                <button class="wc-tile" id="action-history" data-key="5">
+                <button class="wc-tile" id="action-history" data-key="6">
                     <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-history"></i></span>
                     <span class="wc-tile-body">
                         <span class="wc-tile-title">Recent diagrams</span>
@@ -105,6 +113,18 @@
                         <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-settings-gear"></i></span>
                         <span class="wc-link-label">Settings &amp; API keys</span>
                         <span class="kbd">⌘,</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="link-sync-usage" class="wc-link">
+                        <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-sync"></i></span>
+                        <span class="wc-link-label">Sync usage stats</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="link-reset-keys" class="wc-link">
+                        <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-key"></i></span>
+                        <span class="wc-link-label">Reset API keys</span>
                     </a>
                 </li>
                 <li>
@@ -127,9 +147,9 @@
         <footer class="wc-foot">
             <p class="wc-tip">
                 <span class="wc-tip-label">Tip</span>
-                Press <kbd>1</kbd>–<kbd>5</kbd> to jump to any action, or open the Command Palette with <kbd>⌘⇧P</kbd>.
+                Press <kbd>1</kbd>–<kbd>6</kbd> to jump to any action, or open the Command Palette with <kbd>⌘⇧P</kbd>.
             </p>
-            <p class="wc-version">FlowCraft v2.1.0</p>
+            <p class="wc-version">FlowCraft v2.2.0</p>
         </footer>
     </main>
 

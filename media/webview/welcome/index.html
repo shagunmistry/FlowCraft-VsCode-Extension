@@ -15,98 +15,121 @@
     <main class="wc">
 
         <header class="wc-head">
-            <div class="wc-prompt">
-                <span class="wc-prompt-user">flowcraft</span><span class="wc-prompt-sep">@</span><span class="wc-prompt-host">vscode</span>
-                <span class="wc-prompt-path">~/diagrams</span>
-                <span class="wc-prompt-caret">$</span>
+            <div class="wc-brand">
+                <div class="wc-mark" aria-hidden="true">
+                    <span class="wc-mark-glyph">◈</span>
+                </div>
+                <div class="wc-brand-text">
+                    <h1 class="wc-title">FlowCraft</h1>
+                    <p class="wc-subtitle">Turn code and ideas into clear diagrams.</p>
+                </div>
             </div>
-            <div class="wc-version muted">v2.1.0</div>
         </header>
 
-        <section class="wc-status" aria-label="subscription status">
-            <div class="wc-status-row">
-                <span class="wc-status-label">plan</span>
-                <span id="subscription-badge" class="tag"><span class="dot"></span>free</span>
+        <section class="wc-card wc-plan" aria-label="Subscription and usage">
+            <div class="wc-plan-head">
+                <div class="wc-plan-heading">
+                    <span class="wc-eyebrow">Your plan</span>
+                    <span id="subscription-badge" class="tag"><span class="dot"></span>Free</span>
+                </div>
+                <a href="#" id="link-upgrade" class="wc-upgrade hidden">Upgrade</a>
             </div>
-            <div class="progress" id="usage-progress" aria-hidden="false">
+            <div class="progress" id="usage-progress">
                 <div class="fill" id="usage-fill" style="width: 0%"></div>
             </div>
-            <div class="wc-status-row wc-status-foot">
-                <span id="usage-text" class="mono muted">—</span>
-                <span id="usage-limit" class="mono muted"></span>
+            <div class="wc-plan-foot">
+                <span id="usage-text" class="wc-usage-text">Loading usage…</span>
+                <span id="usage-limit" class="wc-usage-limit"></span>
             </div>
         </section>
 
-        <span class="section-marker">actions</span>
+        <section aria-labelledby="wc-actions-heading">
+            <h2 id="wc-actions-heading" class="wc-section-title">Create</h2>
 
-        <nav class="wc-actions" aria-label="commands">
-            <button class="tile" id="action-diagram" data-key="1">
-                <span class="tile-num">1</span>
-                <span class="tile-body">
-                    <span class="tile-title">generate diagram</span>
-                    <span class="tile-desc">flowchart · sequence · class · er · …</span>
-                </span>
-                <span class="kbd">⌘⇧D</span>
-            </button>
+            <nav class="wc-actions" aria-label="Create actions">
+                <button class="wc-tile" id="action-diagram" data-key="1">
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-symbol-structure"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">Create a diagram</span>
+                        <span class="wc-tile-desc">Flowchart, sequence, class, ER and more</span>
+                    </span>
+                    <span class="kbd">⌘⇧D</span>
+                </button>
 
-            <button class="tile" id="action-selection" data-key="2">
-                <span class="tile-num">2</span>
-                <span class="tile-body">
-                    <span class="tile-title">from selection</span>
-                    <span class="tile-desc">use the highlighted text in the editor</span>
-                </span>
-                <span class="kbd">⌘⇧G</span>
-            </button>
+                <button class="wc-tile" id="action-selection" data-key="2">
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-selection"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">From editor selection</span>
+                        <span class="wc-tile-desc">Generate a diagram from highlighted code</span>
+                    </span>
+                    <span class="kbd">⌘⇧G</span>
+                </button>
 
-            <button class="tile" id="action-infographic" data-key="3">
-                <span class="tile-num">3</span>
-                <span class="tile-body">
-                    <span class="tile-title">infographic <span class="tag">soon</span></span>
-                    <span class="tile-desc">visual data summary</span>
-                </span>
-                <span class="kbd">—</span>
-            </button>
+                <button class="wc-tile" id="action-infographic" data-key="3" disabled>
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-graph"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">Infographic <span class="tag tag-soon">Coming soon</span></span>
+                        <span class="wc-tile-desc">Visual summaries from data or notes</span>
+                    </span>
+                </button>
 
-            <button class="tile" id="action-image" data-key="4">
-                <span class="tile-num">4</span>
-                <span class="tile-body">
-                    <span class="tile-title">illustration <span class="tag">soon</span></span>
-                    <span class="tile-desc">ai-rendered image</span>
-                </span>
-                <span class="kbd">—</span>
-            </button>
+                <button class="wc-tile" id="action-image" data-key="4" disabled>
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-symbol-color"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">Illustration <span class="tag tag-soon">Coming soon</span></span>
+                        <span class="wc-tile-desc">AI-rendered images for your docs</span>
+                    </span>
+                </button>
+            </nav>
+        </section>
 
-            <button class="tile" id="action-history" data-key="5">
-                <span class="tile-num">5</span>
-                <span class="tile-body">
-                    <span class="tile-title">history</span>
-                    <span class="tile-desc">previously generated diagrams</span>
-                </span>
-                <span class="kbd">⌘H</span>
-            </button>
-        </nav>
+        <section aria-labelledby="wc-library-heading">
+            <h2 id="wc-library-heading" class="wc-section-title">Library</h2>
+            <nav class="wc-actions" aria-label="Library">
+                <button class="wc-tile" id="action-history" data-key="5">
+                    <span class="wc-tile-icon" aria-hidden="true"><i class="codicon codicon-history"></i></span>
+                    <span class="wc-tile-body">
+                        <span class="wc-tile-title">Recent diagrams</span>
+                        <span class="wc-tile-desc">Reopen something you made before</span>
+                    </span>
+                    <span class="kbd">⌘H</span>
+                </button>
+            </nav>
+        </section>
 
-        <span class="section-marker">shortcuts</span>
-
-        <ul class="wc-links">
-            <li><a href="#" id="link-settings" class="wc-link">
-                <span class="wc-link-caret">›</span> settings &amp; api keys
-                <span class="kbd">⌘,</span>
-            </a></li>
-            <li><a href="https://flowcraft.app/docs" class="wc-link">
-                <span class="wc-link-caret">›</span> docs
-                <span class="muted">flowcraft.app/docs</span>
-            </a></li>
-            <li><a href="https://github.com/flowcraft/vscode/issues" class="wc-link">
-                <span class="wc-link-caret">›</span> report issue
-                <span class="muted">github</span>
-            </a></li>
-        </ul>
+        <section aria-labelledby="wc-more-heading">
+            <h2 id="wc-more-heading" class="wc-section-title">More</h2>
+            <ul class="wc-links">
+                <li>
+                    <a href="#" id="link-settings" class="wc-link">
+                        <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-settings-gear"></i></span>
+                        <span class="wc-link-label">Settings &amp; API keys</span>
+                        <span class="kbd">⌘,</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://flowcraft.app/docs" class="wc-link">
+                        <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-book"></i></span>
+                        <span class="wc-link-label">Documentation</span>
+                        <span class="wc-link-meta"><i class="codicon codicon-link-external"></i></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/flowcraft/vscode/issues" class="wc-link">
+                        <span class="wc-link-icon" aria-hidden="true"><i class="codicon codicon-comment-discussion"></i></span>
+                        <span class="wc-link-label">Send feedback</span>
+                        <span class="wc-link-meta"><i class="codicon codicon-link-external"></i></span>
+                    </a>
+                </li>
+            </ul>
+        </section>
 
         <footer class="wc-foot">
-            <span class="wc-foot-cell"><span class="dim">STATUS</span> <span id="foot-status" class="ok">ready</span></span>
-            <span class="wc-foot-cell"><span class="dim">MODE</span> <span id="foot-mode">byok</span></span>
-            <span class="wc-foot-cell"><span class="dim">TIP</span> press <kbd>1</kbd>–<kbd>5</kbd> or <kbd>⌘⇧P</kbd> → flowcraft</span>
+            <p class="wc-tip">
+                <span class="wc-tip-label">Tip</span>
+                Press <kbd>1</kbd>–<kbd>5</kbd> to jump to any action, or open the Command Palette with <kbd>⌘⇧P</kbd>.
+            </p>
+            <p class="wc-version">FlowCraft v2.1.0</p>
         </footer>
     </main>
 

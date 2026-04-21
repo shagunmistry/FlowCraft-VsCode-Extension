@@ -7,12 +7,14 @@ Transform your code into beautiful diagrams, infographics, and visualizations in
 ## Key Features
 
 ### Multi-Provider AI Support
-Choose the AI model that fits your needs and budget. FlowCraft supports:
-*   **OpenAI**
-*   **Anthropic**
-*   **Google**
-*   **FlowCraft API** 
+Choose the AI provider — and the specific model — that fits your needs and budget. FlowCraft supports:
+*   **OpenAI** — `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `o1-mini`, `o3-mini`
+*   **Anthropic** — Claude Opus 4, Sonnet 4, Haiku 4, and recent 3.x models
+*   **Google** — `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-1.5-pro`, `gemini-1.5-flash`
+*   **FlowCraft API**
     * Documentation available at [FlowCraft API Docs](https://www.flowcraft.app/features/api-keys/).
+
+Select your per-provider model from the Settings sidebar (`models · per provider`). The choice is sent with every generation request; leave on **default** to use the server-side default.
 
 ### Comprehensive Visualization Types
 Generate widespread diagram standards and creative assets:
@@ -51,10 +53,13 @@ You can generate diagrams in multiple ways:
 
 ## Configuration
 
-Access settings via `Cmd+,` (or `Ctrl+,`) and search for `FlowCraft`:
-*   `flowcraft.api.provider`: Set your default AI provider.
-*   `flowcraft.diagrams.defaultType`: Set your preferred diagram type.
-*   `flowcraft.diagrams.autoSave`: Toggle automatic saving to history.
+Open the **FlowCraft Settings** sidebar panel to configure:
+*   **Providers & keys** — paste API keys for each provider; stored in `vscode.secrets`.
+*   **Default provider** — which provider generation commands use by default.
+*   **Per-provider model** — pick the LLM for each provider (e.g. Opus 4 for Anthropic, `gpt-4o-mini` for OpenAI). Leave on `default (server)` to use FlowCraft's recommended model.
+*   **Defaults** — diagram type, color palette, complexity.
+
+Or access VS Code's settings (`Cmd+,` / `Ctrl+,`) and search for `FlowCraft` for the underlying keys.
 
 ## Contributing & Support
 

@@ -28,6 +28,10 @@ export interface Settings {
     [Provider.FlowCraft]?: ProviderConfig;
   };
 
+  // Model selection per provider — each provider gets its own chosen model.
+  // When a provider has no entry here, the API falls back to its server-side default.
+  providerModels: Partial<Record<Provider, string>>;
+
   // Diagram Defaults
   defaultDiagramType: string;
   defaultColorPalette: string;
@@ -61,6 +65,7 @@ export interface ProviderStatus {
 export const DEFAULT_SETTINGS: Settings = {
   defaultProvider: Provider.OpenAI,
   providers: {},
+  providerModels: {},
   defaultDiagramType: 'flowchart',
   defaultColorPalette: 'brand colors',
   defaultComplexity: 'medium',

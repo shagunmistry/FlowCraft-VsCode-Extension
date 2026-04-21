@@ -75,6 +75,8 @@ export interface GenerateDiagramParams {
   colorPalette?: string;
   complexityLevel?: 'simple' | 'medium' | 'complex';
   isPublic: boolean;
+  /** Optional LLM model id (e.g. "gpt-4o", "claude-sonnet-4-20250514"). */
+  model?: string;
 }
 
 export interface GenerateImageParams {

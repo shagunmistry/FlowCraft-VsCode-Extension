@@ -91,32 +91,54 @@ export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
     provider: Provider.OpenAI,
     displayName: 'OpenAI',
     requiresApiKey: true,
-    supportedModels: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-    defaultModel: 'gpt-4',
+    supportedModels: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o1-mini', 'o3-mini'],
+    defaultModel: 'gpt-4o',
     features: ['diagrams', 'infographics']
   },
   [Provider.Anthropic]: {
     provider: Provider.Anthropic,
     displayName: 'Anthropic (Claude)',
     requiresApiKey: true,
-    supportedModels: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],
-    defaultModel: 'claude-3-sonnet',
+    supportedModels: [
+      'claude-opus-4-20250514',
+      'claude-sonnet-4-20250514',
+      'claude-haiku-4-20250514',
+      'claude-3-7-sonnet-20250219',
+      'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022'
+    ],
+    defaultModel: 'claude-sonnet-4-20250514',
     features: ['diagrams', 'infographics']
   },
   [Provider.Google]: {
     provider: Provider.Google,
     displayName: 'Google (Gemini)',
     requiresApiKey: true,
-    supportedModels: ['gemini-pro', 'gemini-pro-vision'],
-    defaultModel: 'gemini-pro',
+    supportedModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+    defaultModel: 'gemini-2.5-flash',
     features: ['diagrams']
   },
   [Provider.FlowCraft]: {
     provider: Provider.FlowCraft,
     displayName: 'FlowCraft API',
     requiresApiKey: true,
-    supportedModels: ['flowcraft-v2'],
-    defaultModel: 'flowcraft-v2',
+    supportedModels: ['flowcraft-default'],
+    defaultModel: 'flowcraft-default',
     features: ['diagrams', 'infographics', 'illustrations', 'images']
   }
 };
+
+/**
+ * Returns the curated list of models available for a given provider.
+ * Used by the Settings webview to populate the per-provider model picker.
+ */
+export function getSupportedModels(provider: Provider): string[] {
+  return PROVIDER_INFO[provider]?.supportedModels ?? [];
+}
+
+/**
+ * Returns the default model for a given provider.
+ */
+export function getDefaultModel(provider: Provider): string {
+  return PROVIDER_INFO[provider]?.defaultModel ?? '';
+}

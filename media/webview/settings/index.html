@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}'; img-src {{cspSource}} https: data:;">
-    <title>FlowCraft · settings</title>
+    <title>FlowCraft · Settings</title>
 
     <link rel="stylesheet" href="{{themeCss}}">
     <link rel="stylesheet" href="{{componentsCss}}">
@@ -15,144 +15,198 @@
     <main class="st">
 
         <header class="st-head">
-            <div class="st-path">
-                <span class="muted">flowcraft</span>
-                <span class="dim">/</span>
-                <span>settings.toml</span>
+            <div class="st-head-text">
+                <h1 class="st-title">Settings</h1>
+                <p class="st-subtitle">Connect a provider and set your defaults. Your keys stay on this machine.</p>
             </div>
-            <div class="st-actions">
-                <button class="btn-icon" id="reveal-btn" title="show / hide keys">
+            <div class="st-head-actions">
+                <button class="btn-icon" id="reveal-btn" title="Show or hide API keys" aria-label="Show or hide API keys">
                     <i class="codicon codicon-eye"></i>
                 </button>
-                <button class="btn-icon" id="reset-btn" title="reset to defaults (⌘R)">
+                <button class="btn-icon" id="reset-btn" title="Reset to defaults (⌘R)" aria-label="Reset to defaults">
                     <i class="codicon codicon-debug-restart"></i>
                 </button>
             </div>
         </header>
 
-        <!-- ————— providers ————— -->
-        <section class="st-section">
-            <span class="section-marker">providers · byok</span>
+        <!-- ————— API Providers ————— -->
+        <section class="st-section" aria-labelledby="providers-heading">
+            <div class="st-section-head">
+                <h2 id="providers-heading" class="st-section-title">API providers</h2>
+                <p class="st-section-desc">Bring your own key. Add at least one to start generating.</p>
+            </div>
 
-            <!-- OpenAI -->
-            <div class="row">
-                <div class="row-head">
-                    <span class="row-key"><span class="prefix">api.</span>openai</span>
-                    <span class="row-hint">gpt-4o · gpt-4 · gpt-3.5 · prefix <code>sk-</code></span>
+            <div class="st-card">
+                <div class="st-provider">
+                    <div class="st-provider-head">
+                        <div class="st-provider-id">
+                            <span class="st-provider-name">OpenAI</span>
+                            <span id="status-openai" class="st-status">Not connected</span>
+                        </div>
+                        <span class="st-provider-hint">GPT-4o · GPT-4 · starts with <code>sk-</code></span>
+                    </div>
+                    <div class="st-provider-control">
+                        <input type="password" class="input" id="key-openai" placeholder="sk-…" autocomplete="off" spellcheck="false">
+                        <button class="btn btn-sm" id="test-openai">Test</button>
+                    </div>
                 </div>
-                <div class="row-control">
-                    <input type="password" class="input" id="key-openai" placeholder="sk-…" autocomplete="off" spellcheck="false">
-                    <button class="btn btn-sm" id="test-openai">test</button>
+
+                <div class="st-provider">
+                    <div class="st-provider-head">
+                        <div class="st-provider-id">
+                            <span class="st-provider-name">Anthropic</span>
+                            <span id="status-anthropic" class="st-status">Not connected</span>
+                        </div>
+                        <span class="st-provider-hint">Claude Opus · Sonnet · Haiku · starts with <code>sk-ant-</code></span>
+                    </div>
+                    <div class="st-provider-control">
+                        <input type="password" class="input" id="key-anthropic" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+                        <button class="btn btn-sm" id="test-anthropic">Test</button>
+                    </div>
                 </div>
-                <div class="row-foot">
-                    <span id="status-openai" class="status">unset</span>
-                    <span class="dim">stored in vscode.secrets</span>
+
+                <div class="st-provider">
+                    <div class="st-provider-head">
+                        <div class="st-provider-id">
+                            <span class="st-provider-name">Google</span>
+                            <span id="status-google" class="st-status">Not connected</span>
+                        </div>
+                        <span class="st-provider-hint">Gemini Pro · starts with <code>AIza</code></span>
+                    </div>
+                    <div class="st-provider-control">
+                        <input type="password" class="input" id="key-google" placeholder="AIza…" autocomplete="off" spellcheck="false">
+                        <button class="btn btn-sm" id="test-google">Test</button>
+                    </div>
+                </div>
+
+                <div class="st-provider">
+                    <div class="st-provider-head">
+                        <div class="st-provider-id">
+                            <span class="st-provider-name">FlowCraft</span>
+                            <span id="status-flowcraft" class="st-status">Not connected</span>
+                        </div>
+                        <span class="st-provider-hint">FlowCraft hosted · starts with <code>fc_</code></span>
+                    </div>
+                    <div class="st-provider-control">
+                        <input type="password" class="input" id="key-flowcraft" placeholder="fc_…" autocomplete="off" spellcheck="false">
+                        <button class="btn btn-sm" id="test-flowcraft">Test</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Anthropic -->
-            <div class="row">
-                <div class="row-head">
-                    <span class="row-key"><span class="prefix">api.</span>anthropic</span>
-                    <span class="row-hint">claude 3 opus · sonnet · haiku · prefix <code>sk-ant-</code></span>
-                </div>
-                <div class="row-control">
-                    <input type="password" class="input" id="key-anthropic" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
-                    <button class="btn btn-sm" id="test-anthropic">test</button>
-                </div>
-                <div class="row-foot">
-                    <span id="status-anthropic" class="status">unset</span>
-                    <span class="dim">stored in vscode.secrets</span>
-                </div>
+            <p class="st-footnote"><i class="codicon codicon-shield"></i> Keys are stored securely in VS Code's secret storage — never synced or shared.</p>
+        </section>
+
+        <!-- ————— Defaults ————— -->
+        <section class="st-section" aria-labelledby="defaults-heading">
+            <div class="st-section-head">
+                <h2 id="defaults-heading" class="st-section-title">Defaults</h2>
+                <p class="st-section-desc">Pre-fills used when creating a new diagram.</p>
             </div>
 
-            <!-- Google -->
-            <div class="row">
-                <div class="row-head">
-                    <span class="row-key"><span class="prefix">api.</span>google</span>
-                    <span class="row-hint">gemini pro · prefix <code>AIza</code></span>
+            <div class="st-card">
+                <div class="st-field">
+                    <label class="st-field-label" for="default-provider">
+                        <span class="st-field-name">Active provider</span>
+                        <span class="st-field-hint">Which provider handles your requests</span>
+                    </label>
+                    <select class="input" id="default-provider">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="google">Google</option>
+                        <option value="flowcraft">FlowCraft</option>
+                    </select>
                 </div>
-                <div class="row-control">
-                    <input type="password" class="input" id="key-google" placeholder="AIza…" autocomplete="off" spellcheck="false">
-                    <button class="btn btn-sm" id="test-google">test</button>
-                </div>
-                <div class="row-foot">
-                    <span id="status-google" class="status">unset</span>
-                    <span class="dim">stored in vscode.secrets</span>
-                </div>
-            </div>
 
-            <!-- FlowCraft -->
-            <div class="row">
-                <div class="row-head">
-                    <span class="row-key"><span class="prefix">api.</span>flowcraft</span>
-                    <span class="row-hint">native cloud · prefix <code>fc_</code></span>
+                <div class="st-field">
+                    <label class="st-field-label" for="default-type">
+                        <span class="st-field-name">Diagram type</span>
+                        <span class="st-field-hint">Default style for new diagrams</span>
+                    </label>
+                    <select class="input" id="default-type">
+                        <option value="flowchart">Flowchart</option>
+                        <option value="sequence">Sequence</option>
+                        <option value="class">Class</option>
+                        <option value="state">State</option>
+                        <option value="er">Entity-Relationship</option>
+                        <option value="gantt">Gantt</option>
+                        <option value="pie">Pie chart</option>
+                    </select>
                 </div>
-                <div class="row-control">
-                    <input type="password" class="input" id="key-flowcraft" placeholder="fc_…" autocomplete="off" spellcheck="false">
-                    <button class="btn btn-sm" id="test-flowcraft">test</button>
+
+                <div class="st-field">
+                    <label class="st-field-label" for="default-palette">
+                        <span class="st-field-name">Color palette</span>
+                        <span class="st-field-hint">How new diagrams are colored</span>
+                    </label>
+                    <select class="input" id="default-palette">
+                        <option value="brand colors">Brand</option>
+                        <option value="monochromatic">Monochromatic</option>
+                        <option value="complementary">Complementary</option>
+                        <option value="analogous">Analogous</option>
+                    </select>
                 </div>
-                <div class="row-foot">
-                    <span id="status-flowcraft" class="status">unset</span>
-                    <span class="dim">stored in vscode.secrets</span>
+
+                <div class="st-field">
+                    <label class="st-field-label" for="default-complexity">
+                        <span class="st-field-name">Detail level</span>
+                        <span class="st-field-hint">How much the model elaborates</span>
+                    </label>
+                    <select class="input" id="default-complexity">
+                        <option value="simple">Simple</option>
+                        <option value="medium">Medium</option>
+                        <option value="complex">Detailed</option>
+                    </select>
                 </div>
             </div>
         </section>
 
-        <!-- ————— preferences ————— -->
-        <section class="st-section">
-            <span class="section-marker">defaults</span>
-
-            <div class="row row-inline">
-                <span class="row-key"><span class="prefix">default.</span>provider</span>
-                <select class="input input-inline" id="default-provider">
-                    <option value="openai">openai</option>
-                    <option value="anthropic">anthropic</option>
-                    <option value="google">google</option>
-                    <option value="flowcraft">flowcraft</option>
-                </select>
+        <!-- ————— Models per provider ————— -->
+        <section class="st-section" aria-labelledby="models-heading">
+            <div class="st-section-head">
+                <h2 id="models-heading" class="st-section-title">Model overrides</h2>
+                <p class="st-section-desc">Pick a specific model for each provider. Leave on <em>Default</em> to let FlowCraft choose.</p>
             </div>
 
-            <div class="row row-inline">
-                <span class="row-key"><span class="prefix">default.</span>diagram</span>
-                <select class="input input-inline" id="default-type">
-                    <option value="flowchart">flowchart</option>
-                    <option value="sequence">sequence</option>
-                    <option value="class">class</option>
-                    <option value="state">state</option>
-                    <option value="er">er</option>
-                    <option value="gantt">gantt</option>
-                    <option value="pie">pie</option>
-                </select>
-            </div>
+            <div class="st-card">
+                <div class="st-field">
+                    <label class="st-field-label" for="model-openai">
+                        <span class="st-field-name">OpenAI</span>
+                    </label>
+                    <select class="input" id="model-openai" data-provider="openai"></select>
+                </div>
 
-            <div class="row row-inline">
-                <span class="row-key"><span class="prefix">default.</span>palette</span>
-                <select class="input input-inline" id="default-palette">
-                    <option value="brand colors">brand</option>
-                    <option value="monochromatic">monochromatic</option>
-                    <option value="complementary">complementary</option>
-                    <option value="analogous">analogous</option>
-                </select>
-            </div>
+                <div class="st-field">
+                    <label class="st-field-label" for="model-anthropic">
+                        <span class="st-field-name">Anthropic</span>
+                    </label>
+                    <select class="input" id="model-anthropic" data-provider="anthropic"></select>
+                </div>
 
-            <div class="row row-inline">
-                <span class="row-key"><span class="prefix">default.</span>complexity</span>
-                <select class="input input-inline" id="default-complexity">
-                    <option value="simple">simple</option>
-                    <option value="medium">medium</option>
-                    <option value="complex">complex</option>
-                </select>
+                <div class="st-field">
+                    <label class="st-field-label" for="model-google">
+                        <span class="st-field-name">Google</span>
+                    </label>
+                    <select class="input" id="model-google" data-provider="google"></select>
+                </div>
+
+                <div class="st-field">
+                    <label class="st-field-label" for="model-flowcraft">
+                        <span class="st-field-name">FlowCraft</span>
+                    </label>
+                    <select class="input" id="model-flowcraft" data-provider="flowcraft"></select>
+                </div>
             </div>
         </section>
 
     </main>
 
     <footer class="st-foot">
-        <span class="st-foot-cell"><span class="dim">⌘S</span> save</span>
-        <span class="st-foot-cell"><span class="dim">⌘R</span> reset</span>
-        <span class="st-foot-cell" id="foot-status">idle</span>
-        <button class="btn btn-primary" id="save-btn">save changes</button>
+        <span class="st-foot-status" id="foot-status">No unsaved changes</span>
+        <div class="st-foot-actions">
+            <span class="st-foot-hint"><kbd>⌘S</kbd> to save</span>
+            <button class="btn btn-primary" id="save-btn">Save changes</button>
+        </div>
     </footer>
 
     <script type="module" nonce="{{nonce}}" src="{{settingsJs}}"></script>

@@ -58,26 +58,29 @@ function wireLinks() {
 function renderUsage(usage) {
   if (!usage) return;
 
-  const progress  = getById('usage-progress');
-  const fill      = getById('usage-fill');
-  const text      = getById('usage-text');
-  const limit     = getById('usage-limit');
-  const badge     = getById('subscription-badge');
-  const footMode  = getById('foot-mode');
+  const progress = getById('usage-progress');
+  const fill     = getById('usage-fill');
+  const text     = getById('usage-text');
+  const limit    = getById('usage-limit');
+  const badge    = getById('subscription-badge');
+  const upgrade  = getById('link-upgrade');
 
   if (usage.subscribed) {
     badge.className = 'tag tag-pro';
-    badge.innerHTML = '<span class="dot"></span>pro';
+    badge.innerHTML = '<span class="dot"></span>Pro';
     if (progress) progress.classList.add('hidden');
-    text.textContent  = `${usage.diagramsCreated} diagrams generated`;
-    limit.textContent = '∞';
-    if (footMode) footMode.textContent = 'pro';
+    if (upgrade)  upgrade.classList.add('hidden');
+    text.textContent  = `${usage.diagramsCreated} diagrams created`;
+    limit.textContent = 'Unlimited';
   } else {
     badge.className = 'tag';
-    badge.innerHTML = '<span class="dot"></span>free';
+    badge.innerHTML = '<span class="dot"></span>Free';
     if (progress) progress.classList.remove('hidden');
+    if (upgrade)  upgrade.classList.remove('hidden');
 
-    const pct = Math.min(100, (usage.diagramsCreated / usage.freeLimit) * 100);
+    const used = usage.diagramsCreated;
+    const total = usage.freeLimit;
+    const pct = Math.min(100, (used / total) * 100);
     if (fill) {
       fill.style.width = `${pct}%`;
       fill.classList.remove('warn', 'err');
@@ -85,8 +88,8 @@ function renderUsage(usage) {
       else if (pct >= 70) fill.classList.add('warn');
     }
 
-    text.textContent  = `[${usage.diagramsCreated}/${usage.freeLimit}] diagrams`;
-    limit.textContent = `${Math.max(0, usage.freeLimit - usage.diagramsCreated)} left`;
-    if (footMode) footMode.textContent = 'byok';
+    const remaining = Math.max(0, total - used);
+    text.textContent  = `${used} of ${total} diagrams used`;
+    limit.textContent = remaining === 1 ? '1 left' : `${remaining} left`;
   }
 }

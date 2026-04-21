@@ -9,6 +9,7 @@ export interface DiagramGenerationRequest {
   colorPalette?: string;
   complexityLevel?: string;
   is_public: boolean;
+  model?: string;
 }
 
 export interface InfographicRequest {
@@ -17,6 +18,7 @@ export interface InfographicRequest {
   colorPalette?: string;
   complexityLevel?: string;
   is_public: boolean;
+  model?: string;
 }
 
 export interface IllustrationRequest {
@@ -25,6 +27,7 @@ export interface IllustrationRequest {
   colorPalette?: string;
   complexityLevel?: string;
   is_public: boolean;
+  model?: string;
 }
 
 export interface ImageGenerationRequest {

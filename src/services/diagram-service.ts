@@ -62,18 +62,25 @@ export class DiagramService {
       throw new Error('Usage limit reached. Please upgrade to continue.');
     }
 
+    // Resolve chosen model: explicit param > per-provider setting > server default (undefined).
+    const providerModels = this.stateManager.getSetting('providerModels') || {};
+    const effectiveParams: GenerateDiagramParams = {
+      ...params,
+      model: params.model ?? providerModels[provider]
+    };
+
     let result: DiagramResult | ImageResult;
     let category: DiagramCategory;
 
     // Determine which API endpoint to use based on diagram type
     switch (params.type) {
       case DiagramType.Infographic:
-        result = await this.apiClient.generateInfographic(params, provider, apiKey);
+        result = await this.apiClient.generateInfographic(effectiveParams, provider, apiKey);
         category = DiagramCategory.SVG;
         break;
 
       case DiagramType.Illustration:
-        result = await this.apiClient.generateIllustration(params, provider, apiKey);
+        result = await this.apiClient.generateIllustration(effectiveParams, provider, apiKey);
         category = DiagramCategory.Image;
         break;
 
@@ -83,7 +90,7 @@ export class DiagramService {
 
       default:
         // Mermaid diagrams
-        result = await this.apiClient.generateDiagram(params, provider, apiKey);
+        result = await this.apiClient.generateDiagram(effectiveParams, provider, apiKey);
         category = DiagramCategory.Mermaid;
     }
 

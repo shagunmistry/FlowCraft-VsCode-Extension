@@ -38,7 +38,6 @@
 	],
 	"exclude": [
 		"node_modules",
-		"out",
-		"**/*.test.ts"
+		"out"
 	]
 }

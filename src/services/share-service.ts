@@ -55,15 +55,23 @@ export class ShareService {
     let shareUrl: string;
     let imageUrl: string | undefined;
     try {
+      const requestBody: {
+        title: string;
+        type: string;
+        diagramData: string;
+        diagramId: string;
+        imagePng?: string;
+      } = {
+        title: diagram.title,
+        type: diagram.type,
+        diagramData: diagram.content,
+        diagramId: diagram.metadata?.remoteId ?? diagram.id,
+        imagePng,
+      };
       const res = await d.fetchFn(`${d.webBaseUrl}/api/generate-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          title: diagram.title,
-          type: diagram.type,
-          data: diagram.content,
-          imagePng,
-        }),
+        body: JSON.stringify(requestBody),
       });
       if (!res.ok) {
         d.showError(`Sharing failed (${res.status}).`);

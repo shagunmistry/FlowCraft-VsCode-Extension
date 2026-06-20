@@ -85,4 +85,22 @@ suite("ShareService", () => {
     await new ShareService(deps).share(baseDiagram());
     assert.strictEqual(failedEvent, "share_failed");
   });
+
+  test("POST body uses diagramData field (not data) and sends correct content", async () => {
+    let capturedBody: Record<string, unknown> | undefined;
+    const diagram = baseDiagram();
+    const deps = baseDeps({
+      fetchFn: (async (_url: string, init?: RequestInit) => {
+        capturedBody = JSON.parse(init?.body as string);
+        return {
+          ok: true,
+          json: async () => ({ result: { link: "https://flowcraft.app/shared/x", imageUrl: undefined } }),
+        } as any;
+      }) as typeof fetch,
+    });
+    await new ShareService(deps).share(diagram);
+    assert.ok(capturedBody !== undefined, "fetchFn should have been called");
+    assert.strictEqual(capturedBody!.diagramData, diagram.content, "diagramData should equal diagram.content");
+    assert.strictEqual(capturedBody!.data, undefined, "legacy 'data' field must not be present");
+  });
 });

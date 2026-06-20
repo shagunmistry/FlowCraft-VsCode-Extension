@@ -412,3 +412,29 @@ body { padding: 0; overflow-x: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .wc-head, .wc-card, .wc > section, .wc-foot { animation: none; }
 }
+
+/* ——— Free-taste (zero-friction onboarding) ——— */
+.wc-freetaste-head { margin-bottom: 10px; }
+.wc-freetaste-title,
+.wc-upsell-title {
+  margin: 4px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fc-text, var(--vscode-foreground));
+}
+.wc-freetaste-desc,
+.wc-upsell-desc {
+  margin: 0;
+  font-size: 12px;
+  opacity: .8;
+}
+.wc-freetaste-form { display: flex; flex-direction: column; gap: 8px; }
+.wc-ft-prompt { width: 100%; resize: vertical; min-height: 44px; font-family: inherit; }
+.wc-ft-row { display: flex; gap: 8px; align-items: center; }
+.wc-ft-type { flex: 1 1 auto; }
+.wc-ft-row .btn { flex: 0 0 auto; }
+.wc-ft-counter { margin: 8px 0 0; font-size: 12px; opacity: .75; }
+
+.wc-upsell-add { width: 100%; margin: 4px 0 10px; }
+.wc-upsell-links { display: flex; flex-direction: column; gap: 6px; }
+.wc-upsell-links .btn { width: 100%; justify-content: center; }

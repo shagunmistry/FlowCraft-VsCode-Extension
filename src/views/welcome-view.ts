@@ -2,8 +2,10 @@ import * as vscode from 'vscode';
 import { StateManager } from '../state/state-manager';
 import { UsageService } from '../services/usage-service';
 import { AuthService } from '../services/auth-service';
+import { APIKeyService } from '../services/api-key-service';
 import { TelemetryService } from '../services/telemetry-service';
 import { FLOWCRAFT_PRICING_URL } from '../services/premium-gate';
+import { PROVIDER_KEY_PAGE } from '../utils/provider-links';
 import { setupMessageListener, getNonce, getWebviewUri } from '../utils/webview-utils';
 
 export class WelcomeViewProvider implements vscode.WebviewViewProvider {
@@ -15,8 +17,20 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
     private readonly stateManager: StateManager,
     private readonly usageService: UsageService,
     private readonly authService: AuthService,
-    private readonly telemetry: TelemetryService
+    private readonly telemetry: TelemetryService,
+    private readonly apiKeyService: APIKeyService,
+    private readonly context: vscode.ExtensionContext
   ) {}
+
+  /** Push the remaining free-taste count to the webview (updates the counter). */
+  public postFreeRemaining(remaining: number): void {
+    this._view?.webview.postMessage({ command: 'freeRemaining', data: { remaining } });
+  }
+
+  /** Tell the webview the free quota is exhausted (swaps in the upsell card). */
+  public postFreeExhausted(): void {
+    this._view?.webview.postMessage({ command: 'freeExhausted' });
+  }
 
   async resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -52,6 +66,20 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
         await vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_PRICING_URL));
       },
       checkUsage: async () => this.sendUsageData(),
+      checkFreeTaste: async () => this.sendFreeTasteData(),
+      freeTaste: async (data: { prompt?: string; type?: string } | undefined) => {
+        await vscode.commands.executeCommand(
+          'flowcraft.runFreeTaste',
+          data?.prompt,
+          data?.type ?? 'flowchart'
+        );
+      },
+      openKeyPage: async (data: { url?: string } | undefined) => {
+        if (data?.url) {
+          await vscode.env.openExternal(vscode.Uri.parse(data.url));
+        }
+      },
+      setupApiKey: async () => { await vscode.commands.executeCommand('flowcraft.setupApiKey'); },
       signIn:  async () => { await vscode.commands.executeCommand('flowcraft.signIn'); },
       signOut: async () => { await vscode.commands.executeCommand('flowcraft.signOut'); }
     });
@@ -59,14 +87,35 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
     // Update on state changes
     this.stateManager.onStateChange(() => {
       this.sendUsageData();
+      this.sendFreeTasteData();
     });
 
     // Push initial account state and refresh on session changes.
     this.sendAccountData();
+    this.sendFreeTasteData();
     this.refreshUsageFromAPI();
     this.authService.onDidChangeSession(() => {
       this.sendAccountData();
       this.refreshUsageFromAPI();
+    });
+  }
+
+  /**
+   * Tell the webview whether the free-taste panel should show (no key configured)
+   * and how many free generations remain, plus the provider key-page deep links.
+   */
+  private async sendFreeTasteData(): Promise<void> {
+    if (!this._view) return;
+    const provider = this.stateManager.getSetting('defaultProvider');
+    const hasApiKey = await this.apiKeyService.has(provider);
+    const remaining = this.context.globalState.get<number>('flowcraft.freeRemaining');
+    this._view.webview.postMessage({
+      command: 'freeTasteState',
+      data: {
+        hasApiKey,
+        remaining: typeof remaining === 'number' ? remaining : null,
+        providerLinks: PROVIDER_KEY_PAGE,
+      },
     });
   }
 

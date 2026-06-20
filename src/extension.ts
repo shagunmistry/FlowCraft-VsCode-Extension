@@ -25,6 +25,8 @@ import { MermaidCodeLensProvider } from "./providers/mermaid-codelens";
 import { ExportService } from "./services/export-service";
 import { ShareService } from "./services/share-service";
 import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
+import { FreeTasteService, FreeTasteQuotaError } from "./services/free-taste-service";
+import { solvePow } from "./utils/pow";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
 const OPENAI_KEY_SECRET = "flowcraft.openai.key";
@@ -214,6 +216,7 @@ async function promptForProviderApiKey(
 
   if (apiKey) {
     await apiKeyService.store(provider, apiKey);
+    telemetryRef?.track("key_added", { provider });
     return apiKey;
   }
   return undefined;
@@ -627,7 +630,9 @@ export async function activate(context: vscode.ExtensionContext) {
     stateManager,
     usageService,
     authService,
-    telemetry
+    telemetry,
+    apiKeyService,
+    context
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -636,12 +641,104 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // Zero-friction "free taste": lets a user with NO API key generate a few
+  // diagrams via the FlowCraft backend (proof-of-work gated, no key required)
+  // before being nudged to bring their own key. Construct after telemetry +
+  // welcomeProvider exist (it reports remaining counts back to the Welcome view).
+  const freeTaste = new FreeTasteService({
+    apiBaseUrl: apiBaseUrl,
+    deviceId: context.globalState.get<string>("flowcraft.installId") ?? "unknown",
+    fetchFn: fetch,
+    solve: (challenge, bits) => solvePow(challenge, bits),
+    track: (e, p) =>
+      telemetry.track(
+        e as Parameters<typeof telemetry.track>[0],
+        p as Parameters<typeof telemetry.track>[1]
+      ),
+  });
+
+  /**
+   * Run one free (no-key) generation: solve PoW, call the backend, persist +
+   * preview the resulting Mermaid, and push the remaining count to the Welcome
+   * view. On quota exhaustion or error, nudge the user toward adding a key.
+   */
+  async function runFreeTaste(prompt: string, type: string): Promise<void> {
+    const trimmed = (prompt ?? "").trim();
+    if (!trimmed) {
+      void vscode.window.showErrorMessage("FlowCraft: enter a prompt to try a free diagram.");
+      return;
+    }
+    if (trimmed.length > 10000) {
+      void vscode.window.showErrorMessage("FlowCraft: prompt is too long (max 10,000 characters).");
+      return;
+    }
+    try {
+      const { mermaidCode, remaining } = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "flowcraft › generating (free)",
+          cancellable: false,
+        },
+        () => freeTaste.generate(trimmed, type)
+      );
+      const diagram = persistRawFetchDiagram(stateManager, {
+        id: `free_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        title: trimmed.slice(0, 80),
+        description: trimmed,
+        type: displayTypeToDiagramType(type),
+        mermaidCode,
+      });
+      if (diagram) {
+        await renderService.view(diagram);
+      }
+      await context.globalState.update("flowcraft.freeRemaining", remaining);
+      welcomeProvider.postFreeRemaining(remaining);
+      if (remaining <= 0) {
+        welcomeProvider.postFreeExhausted();
+      }
+    } catch (err) {
+      if (err instanceof FreeTasteQuotaError) {
+        await context.globalState.update("flowcraft.freeRemaining", 0);
+        welcomeProvider.postFreeExhausted();
+        void vscode.window
+          .showInformationMessage(
+            "You've used your free FlowCraft diagrams. Add your own API key to keep generating.",
+            "Add key"
+          )
+          .then((choice) => {
+            if (choice === "Add key") {
+              void vscode.commands.executeCommand("flowcraft.setupApiKey");
+            }
+          });
+      } else {
+        void vscode.window
+          .showErrorMessage(
+            "Free generation failed. Try again, or add your own API key.",
+            "Add key"
+          )
+          .then((choice) => {
+            if (choice === "Add key") {
+              void vscode.commands.executeCommand("flowcraft.setupApiKey");
+            }
+          });
+      }
+    }
+  }
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "flowcraft.runFreeTaste",
+      (prompt: string, type: string) => runFreeTaste(prompt, type ?? "flowchart")
+    )
+  );
+
   const settingsProvider = new SettingsViewProvider(
     context.extensionUri,
     stateManager,
     apiKeyService,
     authService,
-    entitlementService
+    entitlementService,
+    telemetry
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

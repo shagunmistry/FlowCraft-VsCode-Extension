@@ -10,16 +10,90 @@ const ACTIONS = [
   { id: 'action-history',     command: 'viewHistory' },
 ];
 
+// Provider key-page URLs are injected by freeTasteState; fall back to stable
+// defaults if the message hasn't arrived yet.
+let PROVIDER_LINKS = {
+  openai: 'https://platform.openai.com/api-keys',
+  anthropic: 'https://console.anthropic.com/settings/keys',
+  google: 'https://aistudio.google.com/app/apikey',
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   postMessage('checkUsage');
+  postMessage('checkFreeTaste');
   wireActions();
   wireShortcuts();
   wireLinks();
 
   wireAccount();
+  wireFreeTaste();
 
-  onMessage({ updateUsage: renderUsage, updateAccount: renderAccount });
+  onMessage({
+    updateUsage: renderUsage,
+    updateAccount: renderAccount,
+    freeTasteState: renderFreeTasteState,
+    freeRemaining: renderFreeRemaining,
+    freeExhausted: renderFreeExhausted,
+  });
 });
+
+function wireFreeTaste() {
+  getById('wc-ft-generate')?.addEventListener('click', () => {
+    const promptEl = getById('wc-ft-prompt');
+    const typeEl = getById('wc-ft-type');
+    const prompt = (promptEl && promptEl.value || '').trim();
+    if (!prompt) return;
+    const type = (typeEl && typeEl.value) || 'flowchart';
+    postMessage('freeTaste', { prompt, type });
+  });
+
+  getById('wc-upsell-add')?.addEventListener('click', () => postMessage('setupApiKey'));
+
+  for (const provider of ['openai', 'anthropic', 'google']) {
+    getById(`wc-key-${provider}`)?.addEventListener('click', () => {
+      postMessage('openKeyPage', { url: PROVIDER_LINKS[provider] });
+    });
+  }
+}
+
+function renderFreeTasteState(data) {
+  if (!data) return;
+  if (data.providerLinks) PROVIDER_LINKS = data.providerLinks;
+  const panel = getById('wc-freetaste');
+  const upsell = getById('wc-upsell');
+  // Only show free-taste affordances when the user has NO API key configured.
+  if (data.hasApiKey) {
+    if (panel) panel.hidden = true;
+    if (upsell) upsell.hidden = true;
+    return;
+  }
+  const remaining = typeof data.remaining === 'number' ? data.remaining : null;
+  if (remaining !== null && remaining <= 0) {
+    renderFreeExhausted();
+  } else {
+    if (panel) panel.hidden = false;
+    if (upsell) upsell.hidden = true;
+    renderFreeRemaining({ remaining });
+  }
+}
+
+function renderFreeRemaining(data) {
+  const counter = getById('wc-ft-counter');
+  if (!counter) return;
+  const remaining = data && typeof data.remaining === 'number' ? data.remaining : null;
+  if (remaining === null) {
+    counter.textContent = '5 free diagrams, no key needed.';
+  } else {
+    counter.textContent = remaining === 1 ? '1 free diagram left' : `${remaining} free diagrams left`;
+  }
+}
+
+function renderFreeExhausted() {
+  const panel = getById('wc-freetaste');
+  const upsell = getById('wc-upsell');
+  if (panel) panel.hidden = true;
+  if (upsell) upsell.hidden = false;
+}
 
 function wireAccount() {
   getById('wc-signin')?.addEventListener('click', () => postMessage('signIn'));

@@ -23,6 +23,23 @@ let currentSettings = {};
 let currentProviders = {};
 let keysRevealed = false;
 
+// Mirror of validateKeyFormat() in src/utils/provider-links.ts — the TS util is
+// the unit-tested source of truth; this copy exists only because webview JS
+// cannot import TS modules. Keep the two in sync.
+function validateKeyFormat(provider, key) {
+  const k = (key || '').trim();
+  switch (provider) {
+    case 'openai':
+      return k.startsWith('sk-');
+    case 'anthropic':
+      return k.startsWith('sk-ant-');
+    case 'google':
+      return k.length > 20;
+    default:
+      return k.length > 10;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   postMessage('loadSettings');
   wire();
@@ -73,6 +90,27 @@ function wire() {
       btn.textContent = 'Testing…';
       setStatus(provider, 'warn', 'Checking…');
       postMessage('testConnection', { provider, apiKey });
+    });
+  });
+
+  // Inline key-format validation: as the user types, toggle a pass/fail
+  // indicator on the provider's status label (mirrors validateKeyFormat).
+  PROVIDERS.forEach(p => {
+    const input = getById(`key-${p}`);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      const val = input.value || '';
+      if (!val) {
+        // Empty: fall back to connection state (don't show a format error).
+        const configured = !!(currentProviders && currentProviders[p]);
+        setStatus(p, configured ? 'ok' : '', configured ? 'Connected' : 'Not connected');
+        input.classList.remove('valid', 'invalid');
+        return;
+      }
+      const ok = validateKeyFormat(p, val);
+      input.classList.toggle('valid', ok);
+      input.classList.toggle('invalid', !ok);
+      setStatus(p, ok ? 'ok' : 'err', ok ? 'Looks valid' : 'Unexpected format');
     });
   });
 

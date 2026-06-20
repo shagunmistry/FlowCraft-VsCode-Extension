@@ -404,3 +404,7 @@ body {
   color: #fff;
   border-color: transparent;
 }
+
+/* Inline key-format validation indicator */
+.input.valid   { border-color: var(--vscode-charts-green, #3fb950); }
+.input.invalid { border-color: var(--vscode-errorForeground, #f85149); }

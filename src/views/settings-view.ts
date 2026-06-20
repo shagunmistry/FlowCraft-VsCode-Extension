@@ -3,6 +3,7 @@ import { StateManager } from '../state/state-manager';
 import { APIKeyService } from '../services/api-key-service';
 import { AuthService } from '../services/auth-service';
 import { EntitlementService } from '../services/entitlement-service';
+import { TelemetryService } from '../services/telemetry-service';
 import { FLOWCRAFT_PRICING_URL, FLOWCRAFT_BILLING_URL } from '../services/premium-gate';
 import { Settings, Provider, Entitlement } from '../types';
 import { setupMessageListener, getNonce, getWebviewUri } from '../utils/webview-utils';
@@ -16,7 +17,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     private readonly stateManager: StateManager,
     private readonly apiKeyService: APIKeyService,
     private readonly authService: AuthService,
-    private readonly entitlementService: EntitlementService
+    private readonly entitlementService: EntitlementService,
+    private readonly telemetry: TelemetryService
   ) {}
 
   async resolveWebviewView(
@@ -131,6 +133,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               // Validate key format
               if (this.apiKeyService.validate(provider, key)) {
                 await this.apiKeyService.store(provider, key);
+                this.telemetry.track('key_added', { provider });
                 keysUpdated++;
               } else {
                 vscode.window.showWarningMessage(`Invalid API key format for ${provider}`);

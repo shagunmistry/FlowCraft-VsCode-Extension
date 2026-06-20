@@ -41,6 +41,44 @@
             <p id="wc-account-hint" class="wc-account-hint">Sign in to use your FlowCraft subscription instead of pasting a provider key.</p>
         </section>
 
+        <section class="wc-card wc-freetaste" id="wc-freetaste" aria-label="Try FlowCraft free" hidden>
+            <div class="wc-freetaste-head">
+                <span class="wc-eyebrow">No API key needed</span>
+                <h2 class="wc-freetaste-title">Try it free — 5 diagrams</h2>
+                <p class="wc-freetaste-desc">Type a prompt and we'll generate a diagram. No key, no sign-in.</p>
+            </div>
+            <div class="wc-freetaste-form">
+                <textarea id="wc-ft-prompt" class="input wc-ft-prompt" rows="2"
+                    placeholder="e.g. A login flow with email and OAuth" spellcheck="false"></textarea>
+                <div class="wc-ft-row">
+                    <select id="wc-ft-type" class="input wc-ft-type">
+                        <option value="flowchart">Flowchart</option>
+                        <option value="sequence">Sequence</option>
+                        <option value="class">Class</option>
+                        <option value="state">State</option>
+                        <option value="er">Entity-Relationship</option>
+                        <option value="mindmap">Mindmap</option>
+                    </select>
+                    <button class="btn btn-primary" id="wc-ft-generate">Generate</button>
+                </div>
+            </div>
+            <p class="wc-ft-counter" id="wc-ft-counter"></p>
+        </section>
+
+        <section class="wc-card wc-upsell" id="wc-upsell" aria-label="Add an API key" hidden>
+            <div class="wc-upsell-head">
+                <span class="wc-eyebrow">Free diagrams used up</span>
+                <h2 class="wc-upsell-title">Add your own API key to keep going</h2>
+                <p class="wc-upsell-desc">Bring a key from any provider — generation stays free and unlimited.</p>
+            </div>
+            <button class="btn btn-primary wc-upsell-add" id="wc-upsell-add">Add your key</button>
+            <div class="wc-upsell-links">
+                <button class="btn btn-sm" id="wc-key-openai" data-provider="openai">Get an OpenAI key</button>
+                <button class="btn btn-sm" id="wc-key-anthropic" data-provider="anthropic">Get an Anthropic key</button>
+                <button class="btn btn-sm" id="wc-key-google" data-provider="google">Get a Google key</button>
+            </div>
+        </section>
+
         <section class="wc-card wc-plan" aria-label="Subscription and usage">
             <div class="wc-plan-head">
                 <div class="wc-plan-heading">

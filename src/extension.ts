@@ -23,6 +23,7 @@ import { buildFileContext, summarizeFolder } from "./utils/visualize-context";
 import { toApiType } from "./services/diagram-type-map";
 import { MermaidCodeLensProvider } from "./providers/mermaid-codelens";
 import { ExportService } from "./services/export-service";
+import { ShareService } from "./services/share-service";
 import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
@@ -571,6 +572,42 @@ export async function activate(context: vscode.ExtensionContext) {
       errorMessage: "FlowCraft couldn't re-generate as that type.",
     });
   };
+
+  // Share-to-web: publish the current diagram as a publicly-accessible link.
+  const shareService = new ShareService({
+    getAccessToken: () => authService.getValidAccessToken().then((t) => t ?? undefined),
+    signIn: async () => {
+      await vscode.commands.executeCommand("flowcraft.signIn");
+      return !!(await authService.getValidAccessToken());
+    },
+    rasterizePng: async (diagram) => {
+      const r = await renderService.renderExport(diagram, "png", 2);
+      return r.payload; // base64 data URL
+    },
+    webBaseUrl: authConfig.webBaseUrl,
+    fetchFn: fetch,
+    copyToClipboard: (t) => Promise.resolve(vscode.env.clipboard.writeText(t)),
+    showInfo: (msg, ...actions) =>
+      Promise.resolve(vscode.window.showInformationMessage(msg, ...actions)),
+    showError: (msg) => void vscode.window.showErrorMessage(msg),
+    track: (e, p) => telemetry.track(e as Parameters<typeof telemetry.track>[0], p as Parameters<typeof telemetry.track>[1]),
+    openExternal: (url) => void vscode.env.openExternal(vscode.Uri.parse(url)),
+    confirmFirstShare: async () => {
+      const KEY = "flowcraft.share.confirmedPublic";
+      if (context.globalState.get<boolean>(KEY)) { return true; }
+      const ok = await vscode.window.showWarningMessage(
+        "Sharing makes this diagram publicly viewable by anyone with the link. Continue?",
+        { modal: true },
+        "Share publicly"
+      );
+      if (ok === "Share publicly") {
+        await context.globalState.update(KEY, true);
+        return true;
+      }
+      return false;
+    },
+  });
+  renderService.onShareRequested = (diagram) => shareService.share(diagram);
 
   // Emit a `signed_in` telemetry event on a null → session transition.
   let wasSignedIn = authService.isSignedIn();

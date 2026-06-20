@@ -33,7 +33,10 @@ export type TelemetryEventName =
   | "refine_succeeded"
   | "refine_failed"
   | "visualize_requested"
-  | "markdown_insert_requested";
+  | "markdown_insert_requested"
+  | "share_requested"
+  | "share_succeeded"
+  | "share_failed";
 
 export interface TelemetryProps {
   diagram_type?: string;

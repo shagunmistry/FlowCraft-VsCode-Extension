@@ -66,6 +66,9 @@ export class RenderService implements vscode.Disposable {
     | ((diagram: Diagram, apiType: string) => void | Promise<void>)
     | undefined;
 
+  /** Wired by extension.ts to publish the current diagram to the web. */
+  public onShareRequested: ((diagram: Diagram) => Promise<void>) | undefined;
+
   /** Per-active-diagram refine history (Mermaid versions), oldest first. */
   private refineStack: string[] = [];
 
@@ -370,6 +373,11 @@ export class RenderService implements vscode.Disposable {
         }
         break;
       }
+      case "share":
+        if (this.onShareRequested && this.current) {
+          await this.onShareRequested(this.current);
+        }
+        break;
       default:
         break;
     }
@@ -502,6 +510,7 @@ export class RenderService implements vscode.Disposable {
     <span class="spacer"></span>
     <button id="tb-theme" title="Toggle light / dark rendering">Theme</button>
     <button id="tb-web" title="Open the synced diagram on flowcraft.app" disabled>Open on web</button>
+    <button id="tb-share" title="Share to web">Share</button>
   </div>
   <div class="stage"><div id="diagram"></div></div>
   <div class="refinebar">
@@ -662,6 +671,7 @@ export class RenderService implements vscode.Disposable {
       document.getElementById("tb-export").addEventListener("click", function () { vscode.postMessage({ command: "toolbar", data: { action: "export" } }); });
       document.getElementById("tb-theme").addEventListener("click", function () { vscode.postMessage({ command: "toolbar", data: { action: "toggleTheme" } }); });
       document.getElementById("tb-web").addEventListener("click", function () { vscode.postMessage({ command: "toolbar", data: { action: "openWeb" } }); });
+      document.getElementById("tb-share").addEventListener("click", function () { vscode.postMessage({ command: "toolbar", data: { action: "share" } }); });
       document.getElementById("tb-type").addEventListener("change", function (e) {
         const type = e.target.value;
         if (type) { vscode.postMessage({ command: "toolbar", data: { action: "changeType", type: type } }); }

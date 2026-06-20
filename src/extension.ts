@@ -135,7 +135,8 @@ function persistRawFetchDiagram(
     description: string;
     type: DiagramType;
     mermaidCode: string;
-  }
+  },
+  skipTelemetry: boolean = false
 ): Diagram | undefined {
   try {
     const now = new Date();
@@ -155,10 +156,12 @@ function persistRawFetchDiagram(
       metadata: { remoteId: params.id },
     };
     stateManager.addDiagram(diagram);
-    telemetryRef?.track("generation_succeeded", {
-      diagram_type: params.type,
-      provider: stateManager.getSetting("defaultProvider"),
-    });
+    if (!skipTelemetry) {
+      telemetryRef?.track("generation_succeeded", {
+        diagram_type: params.type,
+        provider: stateManager.getSetting("defaultProvider"),
+      });
+    }
     maybeNudgeUpgrade();
     return diagram;
   } catch (err) {
@@ -173,7 +176,7 @@ function displayTypeToDiagramType(display: string): DiagramType {
   if (key.includes("sequence")) return DiagramType.Sequence;
   if (key.includes("class")) return DiagramType.Class;
   if (key.includes("state")) return DiagramType.State;
-  if (key.includes("entity") || key.includes("er ")) return DiagramType.ER;
+  if (key.includes("entity") || key.includes("er ") || key === "er") return DiagramType.ER;
   if (key.includes("gantt")) return DiagramType.Gantt;
   if (key.includes("pie")) return DiagramType.Pie;
   if (key.includes("timeline")) return DiagramType.Timeline;
@@ -687,7 +690,7 @@ export async function activate(context: vscode.ExtensionContext) {
         description: trimmed,
         type: displayTypeToDiagramType(type),
         mermaidCode,
-      });
+      }, true);
       if (diagram) {
         await renderService.view(diagram);
       }

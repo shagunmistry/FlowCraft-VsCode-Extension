@@ -75,10 +75,15 @@ export class ShareService {
       });
       if (!res.ok) {
         d.showError(`Sharing failed (${res.status}).`);
-        d.track("share_failed", { diagram_type: diagram.type, error_kind: "network" });
+        d.track("share_failed", { diagram_type: diagram.type, error_kind: "http_error" });
         return;
       }
       const json = (await res.json()) as GenerateLinkResponse;
+      if (!json?.result?.link) {
+        d.track("share_failed", { diagram_type: diagram.type, error_kind: "api_contract" });
+        d.showError("Sharing failed: unexpected response from server.");
+        return;
+      }
       shareUrl = json.result.link;
       imageUrl = json.result.imageUrl;
     } catch {

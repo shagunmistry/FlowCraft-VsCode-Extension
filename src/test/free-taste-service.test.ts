@@ -34,7 +34,19 @@ suite("FreeTasteService", () => {
     await assert.rejects(() => new FreeTasteService(d).generate("x", "flowchart"), FreeTasteQuotaError);
   });
 
-  test("throws when PoW cannot be solved", async () => {
-    await assert.rejects(() => new FreeTasteService(deps({ solve: () => null })).generate("x", "flowchart"));
+  test("throws when PoW cannot be solved and never calls generate POST", async () => {
+    const calledPaths: string[] = [];
+    const spyFetch = (async (url: string, _init?: RequestInit) => {
+      const path = new URL(url).pathname;
+      calledPaths.push(path);
+      if (path === "/v2/free/challenge") {
+        return { ok: true, json: async () => ({ challenge: "c.h", difficulty: 4, expires: 9 }) } as any;
+      }
+      return { ok: true, json: async () => ({}) } as any;
+    }) as any;
+    await assert.rejects(() =>
+      new FreeTasteService(deps({ solve: () => null, fetchFn: spyFetch })).generate("x", "flowchart")
+    );
+    assert.ok(!calledPaths.includes("/v2/free/generate"), "/v2/free/generate must NOT be called when PoW is unsolvable");
   });
 });

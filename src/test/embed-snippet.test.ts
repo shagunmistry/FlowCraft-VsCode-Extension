@@ -27,4 +27,9 @@ suite("buildEmbedSnippet", () => {
     const out = buildEmbedSnippet("", "https://flowcraft.app/shared/abc", "https://cdn/x.png");
     assert.ok(out.startsWith("[![Diagram](https://cdn/x.png)]"));
   });
+
+  test("escapes both [ and ] when title contains surrounding text", () => {
+    const out = buildEmbedSnippet("Hello [World] today", "https://flowcraft.app/shared/abc", "https://cdn/x.png");
+    assert.ok(out.startsWith("[![Hello \\[World\\] today](https://cdn/x.png)]"));
+  });
 });

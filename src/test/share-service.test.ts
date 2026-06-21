@@ -86,6 +86,24 @@ suite("ShareService", () => {
     assert.strictEqual(failedEvent, "share_failed");
   });
 
+  test("emits share_failed with render error_kind and does not call fetchFn when rasterizePng throws", async () => {
+    const calledUrls: string[] = [];
+    let trackedEvents: Array<{ event: string; props?: Record<string, unknown> }> = [];
+    const deps = baseDeps({
+      rasterizePng: async () => { throw new Error("render error"); },
+      fetchFn: (async (url: string) => {
+        calledUrls.push(url);
+        return { ok: true, json: async () => ({}) } as any;
+      }) as typeof fetch,
+      track: (event: string, props?: Record<string, unknown>) => { trackedEvents.push({ event, props }); },
+    });
+    await new ShareService(deps).share(baseDiagram());
+    const failedEvent = trackedEvents.find(e => e.event === "share_failed");
+    assert.ok(failedEvent !== undefined, "share_failed should be emitted");
+    assert.strictEqual(failedEvent!.props?.error_kind, "render");
+    assert.strictEqual(calledUrls.length, 0, "fetchFn must not be called when render fails");
+  });
+
   test("POST body uses diagramData field (not data) and sends correct content", async () => {
     let capturedBody: Record<string, unknown> | undefined;
     const diagram = baseDiagram();

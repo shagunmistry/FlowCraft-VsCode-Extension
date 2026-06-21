@@ -16,4 +16,10 @@ suite("provider-links", () => {
     assert.strictEqual(validateKeyFormat("google", "x".repeat(25)), true);
     assert.strictEqual(validateKeyFormat("google", "short"), false);
   });
+
+  test("validateKeyFormat default branch: unknown provider uses length > 10 rule", () => {
+    assert.strictEqual(validateKeyFormat("mistral", "x".repeat(11)), true);
+    assert.strictEqual(validateKeyFormat("mistral", "x".repeat(10)), false);
+    assert.strictEqual(validateKeyFormat("mistral", "short"), false);
+  });
 });

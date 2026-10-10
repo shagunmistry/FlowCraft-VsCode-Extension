@@ -4,6 +4,11 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.9.1] - 2026-10-10
+
+### Changed
+- Updated the model lists and defaults: Claude Opus 5.5 / Sonnet 5.5 / Haiku 5.5, Gemini 3.8 Flash, and GPT-6.1 Sol.
+
 ## [2.9.0] - 2026-06-11
 
 ### Added

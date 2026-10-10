@@ -1,0 +1,45 @@
+name: Test and publish
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # package.json scripts call `pnpm run ...`; deps come from package-lock.json.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - run: npm ci
+
+      - name: Test
+        run: xvfb-run -a npm test
+
+      # The Marketplace rejects a version that already exists, so only publish
+      # when this push changed "version" in package.json.
+      - name: Check for version bump
+        id: bump
+        run: |
+          if git diff HEAD^ HEAD -- package.json | grep -qE '^\+\s+"version":'; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged; skipping publish."
+          fi
+
+      - name: Publish to VS Code Marketplace
+        if: steps.bump.outputs.bumped == 'true'
+        run: npx vsce publish --no-dependencies
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

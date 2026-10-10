@@ -110,31 +110,24 @@ export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
     provider: Provider.OpenAI,
     displayName: 'OpenAI',
     requiresApiKey: true,
-    supportedModels: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o1-mini', 'o3-mini'],
-    defaultModel: 'gpt-4o',
+    supportedModels: ['gpt-6.1-sol'],
+    defaultModel: 'gpt-6.1-sol',
     features: ['diagrams', 'infographics']
   },
   [Provider.Anthropic]: {
     provider: Provider.Anthropic,
     displayName: 'Anthropic (Claude)',
     requiresApiKey: true,
-    supportedModels: [
-      'claude-opus-4-20250514',
-      'claude-sonnet-4-20250514',
-      'claude-haiku-4-20250514',
-      'claude-3-7-sonnet-20250219',
-      'claude-3-5-sonnet-20241022',
-      'claude-3-5-haiku-20241022'
-    ],
-    defaultModel: 'claude-sonnet-4-20250514',
+    supportedModels: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
+    defaultModel: 'claude-sonnet-5-5',
     features: ['diagrams', 'infographics']
   },
   [Provider.Google]: {
     provider: Provider.Google,
     displayName: 'Google (Gemini)',
     requiresApiKey: true,
-    supportedModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-    defaultModel: 'gemini-2.5-flash',
+    supportedModels: ['gemini-3.8-flash'],
+    defaultModel: 'gemini-3.8-flash',
     features: ['diagrams']
   },
   [Provider.FlowCraft]: {

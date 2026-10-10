@@ -6,16 +6,9 @@ const PROVIDERS = ['openai', 'anthropic', 'google', 'flowcraft'];
 // Curated model lists per provider — mirrors PROVIDER_INFO in src/types/api.ts.
 // Keep in sync when the TypeScript list changes.
 const MODELS_BY_PROVIDER = {
-  openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o1-mini', 'o3-mini'],
-  anthropic: [
-    'claude-opus-4-20250514',
-    'claude-sonnet-4-20250514',
-    'claude-haiku-4-20250514',
-    'claude-3-7-sonnet-20250219',
-    'claude-3-5-sonnet-20241022',
-    'claude-3-5-haiku-20241022'
-  ],
-  google: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  openai: ['gpt-6.1-sol'],
+  anthropic: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
+  google: ['gemini-3.8-flash'],
   flowcraft: ['flowcraft-default']
 };
 

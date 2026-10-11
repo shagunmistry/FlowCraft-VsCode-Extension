@@ -12,7 +12,7 @@ import { registerAuthUriHandler, signIn, signOut } from "./auth/auth-flow";
 import { WelcomeViewProvider } from "./views/welcome-view";
 import { SettingsViewProvider } from "./views/settings-view";
 import { initLogger } from "./utils/logger";
-import { TelemetryService } from "./services/telemetry-service";
+import { TelemetryService, userIdFromAccessToken } from "./services/telemetry-service";
 import { EntitlementService } from "./services/entitlement-service";
 import { CloudSyncService } from "./services/cloud-sync-service";
 import { requirePremium, FLOWCRAFT_PRICING_URL } from "./services/premium-gate";
@@ -478,7 +478,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // The viewer's "Export" toolbar button runs the export flow; "Open on web"
   // resolves a synced URL when one exists.
-  renderService.onExportRequested = (diagram) => exportService.exportDiagram(diagram);
+  renderService.onExportRequested = (diagram) => {
+    telemetry.track("export_requested", { diagram_type: diagram.type });
+    return exportService.exportDiagram(diagram);
+  };
   renderService.webUrlFor = (diagram) => {
     const remoteId = diagram.metadata?.remoteId as string | undefined;
     if (remoteId) {
@@ -654,13 +657,24 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   renderService.onShareRequested = (diagram) => shareService.share(diagram);
 
-  // Emit a `signed_in` telemetry event on a null → session transition.
+  // Emit `signed_in` / `signed_out` on session transitions, and label events
+  // with the Supabase user id (never the email) while signed in so extension
+  // activity joins to the same user on the web app.
   let wasSignedIn = authService.isSignedIn();
+  void authService.getSession().then((session) => {
+    if (session) {
+      telemetry.setUserId(userIdFromAccessToken(session.accessToken));
+    }
+  });
   context.subscriptions.push(
     authService.onDidChangeSession((session) => {
       const nowSignedIn = !!session;
       if (nowSignedIn && !wasSignedIn) {
+        telemetry.setUserId(userIdFromAccessToken(session.accessToken));
         telemetry.track("signed_in");
+      } else if (!nowSignedIn && wasSignedIn) {
+        telemetry.track("signed_out"); // still carries the user id
+        telemetry.setUserId(undefined);
       }
       wasSignedIn = nowSignedIn;
     })
@@ -943,6 +957,7 @@ export async function activate(context: vscode.ExtensionContext) {
         };
         // Adds to history and (if signed-in + subscribed) auto-syncs to the cloud.
         stateManager.addDiagram(diagram);
+        telemetry.track("template_inserted", { diagram_type: diagram.type });
 
         // Open the Mermaid in an untitled markdown doc for immediate use/preview.
         const doc = await vscode.workspace.openTextDocument({
@@ -1006,6 +1021,7 @@ export async function activate(context: vscode.ExtensionContext) {
     async (arg?: unknown) => {
       const diagram = await resolveDiagram(arg);
       if (diagram) {
+        telemetry.track("export_requested", { diagram_type: diagram.type });
         await exportService.exportDiagram(diagram);
       }
     }
@@ -1424,6 +1440,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let showHistoryCommand = vscode.commands.registerCommand(
     "flowcraft.showHistory",
     async () => {
+      telemetry.track("history_opened");
       const recent = await diagramService.getRecent();
       if (recent.length === 0) {
         vscode.window

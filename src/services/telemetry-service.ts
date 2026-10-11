@@ -33,6 +33,7 @@ export type TelemetryEventName =
   | "free_taste_failed"
   | "key_added"
   | "signed_in"
+  | "signed_out"
   | "refine_requested"
   | "refine_succeeded"
   | "refine_failed"
@@ -40,7 +41,25 @@ export type TelemetryEventName =
   | "markdown_insert_requested"
   | "share_requested"
   | "share_succeeded"
-  | "share_failed";
+  | "share_failed"
+  | "export_requested"
+  | "history_opened"
+  | "template_inserted";
+
+/**
+ * Supabase user id (the JWT `sub` claim) from an access token, decoded locally
+ * without verification — it only labels analytics events so web and extension
+ * activity can be joined. Never returns the email or the token itself.
+ */
+export function userIdFromAccessToken(token: string): string | undefined {
+  try {
+    const payload = token.split(".")[1];
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    return typeof claims.sub === "string" ? claims.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface TelemetryProps {
   diagram_type?: string;
@@ -53,12 +72,15 @@ export interface TelemetryProps {
 
 interface QueuedEvent extends TelemetryProps {
   event: TelemetryEventName;
+  user_id?: string;
 }
 
 export class TelemetryService {
   private queue: QueuedEvent[] = [];
   private flushTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly installId: string;
+  /** Set while signed in so events join to the same user on the web app. */
+  private userId: string | undefined;
   private readonly common: {
     ext_version: string;
     vscode_version: string;
@@ -89,11 +111,15 @@ export class TelemetryService {
     return this.isUserEnabled() && vscode.env.isTelemetryEnabled;
   }
 
+  setUserId(userId: string | undefined): void {
+    this.userId = userId;
+  }
+
   track(event: TelemetryEventName, props: TelemetryProps = {}): void {
     if (!this.enabled()) {
       return;
     }
-    this.queue.push({ event, ...props });
+    this.queue.push({ event, ...props, user_id: this.userId });
     if (this.queue.length >= FLUSH_AT_COUNT) {
       void this.flush();
     } else {

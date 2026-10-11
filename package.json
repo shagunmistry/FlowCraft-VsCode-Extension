@@ -12,7 +12,7 @@
     "color": "#1E1B4B",
     "theme": "dark"
   },
-  "version": "2.9.1",
+  "version": "2.10.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -235,22 +235,34 @@
             "id": "addApiKey",
             "title": "Add your API key (BYOK)",
             "description": "FlowCraft uses your own AI provider key — nothing routes through FlowCraft's servers.\n[Set Up API Key](command:flowcraft.setupApiKey)",
-            "media": { "markdown": "media/walkthrough/step-key.md" },
-            "completionEvents": ["onContext:flowcraft.hasApiKey"]
+            "media": {
+              "markdown": "media/walkthrough/step-key.md"
+            },
+            "completionEvents": [
+              "onContext:flowcraft.hasApiKey"
+            ]
           },
           {
             "id": "generate",
             "title": "Generate your first diagram",
             "description": "Open the generation view and describe what you want.\n[Generate a Diagram](command:flowcraft.openGenerationView)",
-            "media": { "markdown": "media/walkthrough/step-generate.md" },
-            "completionEvents": ["onCommand:flowcraft.openGenerationView"]
+            "media": {
+              "markdown": "media/walkthrough/step-generate.md"
+            },
+            "completionEvents": [
+              "onCommand:flowcraft.openGenerationView"
+            ]
           },
           {
             "id": "more",
             "title": "Go further",
             "description": "Create infographics, sign in for Premium, or tweak settings.\n[Open Settings](command:flowcraft.openSettings)\n[Sign in for Premium](command:flowcraft.signIn)",
-            "media": { "markdown": "media/walkthrough/step-more.md" },
-            "completionEvents": ["onCommand:flowcraft.openSettings"]
+            "media": {
+              "markdown": "media/walkthrough/step-more.md"
+            },
+            "completionEvents": [
+              "onCommand:flowcraft.openSettings"
+            ]
           }
         ]
       }
@@ -261,18 +273,12 @@
         "flowcraft.api.provider": {
           "type": "string",
           "enum": [
-            "openai",
-            "anthropic",
-            "google",
-            "flowcraft"
+            "openrouter"
           ],
-          "default": "openai",
-          "description": "Default AI provider for diagram generation",
+          "default": "openrouter",
+          "description": "AI provider for diagram generation. FlowCraft uses OpenRouter: one key (openrouter.ai/keys) for every model.",
           "enumDescriptions": [
-            "OpenAI (GPT-4, GPT-3.5)",
-            "Anthropic (Claude)",
-            "Google (Gemini)",
-            "FlowCraft API"
+            "OpenRouter (Claude, GPT, Gemini and more with a single key)"
           ]
         },
         "flowcraft.api.baseUrl": {

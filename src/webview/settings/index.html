@@ -57,64 +57,22 @@
         <!-- ————— API Providers ————— -->
         <section class="st-section" aria-labelledby="providers-heading">
             <div class="st-section-head">
-                <h2 id="providers-heading" class="st-section-title">API providers</h2>
-                <p class="st-section-desc">Bring your own key. Add at least one to start generating.</p>
+                <h2 id="providers-heading" class="st-section-title">OpenRouter key</h2>
+                <p class="st-section-desc">Bring your own key. Add an OpenRouter key to start generating.</p>
             </div>
 
             <div class="st-card">
                 <div class="st-provider">
                     <div class="st-provider-head">
                         <div class="st-provider-id">
-                            <span class="st-provider-name">OpenAI</span>
-                            <span id="status-openai" class="st-status">Not connected</span>
+                            <span class="st-provider-name">OpenRouter</span>
+                            <span id="status-openrouter" class="st-status">Not connected</span>
                         </div>
-                        <span class="st-provider-hint">GPT-4o · GPT-4 · starts with <code>sk-</code></span>
+                        <span class="st-provider-hint">One key for Claude, GPT, Gemini and more · starts with <code>sk-or-</code> · <a href="https://openrouter.ai/keys">get a key</a></span>
                     </div>
                     <div class="st-provider-control">
-                        <input type="password" class="input" id="key-openai" placeholder="sk-…" autocomplete="off" spellcheck="false">
-                        <button class="btn btn-sm" id="test-openai">Test</button>
-                    </div>
-                </div>
-
-                <div class="st-provider">
-                    <div class="st-provider-head">
-                        <div class="st-provider-id">
-                            <span class="st-provider-name">Anthropic</span>
-                            <span id="status-anthropic" class="st-status">Not connected</span>
-                        </div>
-                        <span class="st-provider-hint">Claude Opus · Sonnet · Haiku · starts with <code>sk-ant-</code></span>
-                    </div>
-                    <div class="st-provider-control">
-                        <input type="password" class="input" id="key-anthropic" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
-                        <button class="btn btn-sm" id="test-anthropic">Test</button>
-                    </div>
-                </div>
-
-                <div class="st-provider">
-                    <div class="st-provider-head">
-                        <div class="st-provider-id">
-                            <span class="st-provider-name">Google</span>
-                            <span id="status-google" class="st-status">Not connected</span>
-                        </div>
-                        <span class="st-provider-hint">Gemini Pro · starts with <code>AIza</code></span>
-                    </div>
-                    <div class="st-provider-control">
-                        <input type="password" class="input" id="key-google" placeholder="AIza…" autocomplete="off" spellcheck="false">
-                        <button class="btn btn-sm" id="test-google">Test</button>
-                    </div>
-                </div>
-
-                <div class="st-provider">
-                    <div class="st-provider-head">
-                        <div class="st-provider-id">
-                            <span class="st-provider-name">FlowCraft</span>
-                            <span id="status-flowcraft" class="st-status">Not connected</span>
-                        </div>
-                        <span class="st-provider-hint">FlowCraft hosted · starts with <code>fc_</code></span>
-                    </div>
-                    <div class="st-provider-control">
-                        <input type="password" class="input" id="key-flowcraft" placeholder="fc_…" autocomplete="off" spellcheck="false">
-                        <button class="btn btn-sm" id="test-flowcraft">Test</button>
+                        <input type="password" class="input" id="key-openrouter" placeholder="sk-or-…" autocomplete="off" spellcheck="false">
+                        <button class="btn btn-sm" id="test-openrouter">Test</button>
                     </div>
                 </div>
             </div>
@@ -135,19 +93,6 @@
             </div>
 
             <div class="st-card">
-                <div class="st-field">
-                    <label class="st-field-label" for="default-provider">
-                        <span class="st-field-name">Active provider</span>
-                        <span class="st-field-hint">Which provider handles your requests</span>
-                    </label>
-                    <select class="input" id="default-provider">
-                        <option value="openai">OpenAI</option>
-                        <option value="anthropic">Anthropic</option>
-                        <option value="google">Google</option>
-                        <option value="flowcraft">FlowCraft</option>
-                    </select>
-                </div>
-
                 <div class="st-field">
                     <label class="st-field-label" for="default-type">
                         <span class="st-field-name">Diagram type</span>
@@ -191,40 +136,21 @@
             </div>
         </section>
 
-        <!-- ————— Models per provider ————— -->
+        <!-- ————— Model ————— -->
         <section class="st-section" aria-labelledby="models-heading">
             <div class="st-section-head">
-                <h2 id="models-heading" class="st-section-title">Model overrides</h2>
-                <p class="st-section-desc">Pick a specific model for each provider. Leave on <em>Default</em> to let FlowCraft choose.</p>
+                <h2 id="models-heading" class="st-section-title">Model</h2>
+                <p class="st-section-desc">Pick an OpenRouter model, or type any slug from <a href="https://openrouter.ai/models">openrouter.ai/models</a>. Leave empty to let FlowCraft choose.</p>
             </div>
 
             <div class="st-card">
                 <div class="st-field">
-                    <label class="st-field-label" for="model-openai">
-                        <span class="st-field-name">OpenAI</span>
+                    <label class="st-field-label" for="model-openrouter">
+                        <span class="st-field-name">Model slug</span>
+                        <span class="st-field-hint">e.g. anthropic/claude-sonnet-5.5</span>
                     </label>
-                    <select class="input" id="model-openai" data-provider="openai"></select>
-                </div>
-
-                <div class="st-field">
-                    <label class="st-field-label" for="model-anthropic">
-                        <span class="st-field-name">Anthropic</span>
-                    </label>
-                    <select class="input" id="model-anthropic" data-provider="anthropic"></select>
-                </div>
-
-                <div class="st-field">
-                    <label class="st-field-label" for="model-google">
-                        <span class="st-field-name">Google</span>
-                    </label>
-                    <select class="input" id="model-google" data-provider="google"></select>
-                </div>
-
-                <div class="st-field">
-                    <label class="st-field-label" for="model-flowcraft">
-                        <span class="st-field-name">FlowCraft</span>
-                    </label>
-                    <select class="input" id="model-flowcraft" data-provider="flowcraft"></select>
+                    <input type="text" class="input" id="model-openrouter" list="model-suggestions" placeholder="Default (recommended)" autocomplete="off" spellcheck="false">
+                    <datalist id="model-suggestions"></datalist>
                 </div>
             </div>
         </section>

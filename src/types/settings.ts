@@ -2,11 +2,13 @@
  * Settings and configuration type definitions
  */
 
+/**
+ * All text generation goes through OpenRouter: one key, any model slug
+ * (e.g. "anthropic/claude-sonnet-5.5"). Kept as an enum so provider-keyed
+ * code (secrets, settings maps) stays generic.
+ */
 export enum Provider {
-  OpenAI = 'openai',
-  Anthropic = 'anthropic',
-  Google = 'google',
-  FlowCraft = 'flowcraft'
+  OpenRouter = 'openrouter'
 }
 
 export interface ProviderConfig {
@@ -22,14 +24,11 @@ export interface Settings {
   // API Configuration
   defaultProvider: Provider;
   providers: {
-    [Provider.OpenAI]?: ProviderConfig;
-    [Provider.Anthropic]?: ProviderConfig;
-    [Provider.Google]?: ProviderConfig;
-    [Provider.FlowCraft]?: ProviderConfig;
+    [Provider.OpenRouter]?: ProviderConfig;
   };
 
-  // Model selection per provider — each provider gets its own chosen model.
-  // When a provider has no entry here, the API falls back to its server-side default.
+  // OpenRouter model slug (e.g. "anthropic/claude-sonnet-5.5").
+  // When unset, the API falls back to its server-side default.
   providerModels: Partial<Record<Provider, string>>;
 
   // Diagram Defaults
@@ -72,7 +71,7 @@ export interface ProviderStatus {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  defaultProvider: Provider.OpenAI,
+  defaultProvider: Provider.OpenRouter,
   providers: {},
   providerModels: {},
   defaultDiagramType: 'flowchart',

@@ -75,7 +75,7 @@ export interface GenerateDiagramParams {
   colorPalette?: string;
   complexityLevel?: 'simple' | 'medium' | 'complex';
   isPublic: boolean;
-  /** Optional LLM model id (e.g. "gpt-6.1-sol", "claude-sonnet-5-5"). */
+  /** Optional LLM model id (OpenRouter slug, e.g. "anthropic/claude-sonnet-5.5"). */
   model?: string;
 }
 

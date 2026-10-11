@@ -34,6 +34,14 @@ const OPENAI_KEY_SECRET = "flowcraft.openai.key";
 // Set during activate(); lets module-level helpers (e.g. the legacy fetch flows)
 // emit telemetry without threading the service through every call.
 let telemetryRef: TelemetryService | undefined;
+/** Returns the user's chosen OpenRouter model slug (undefined = server default). */
+let modelRef: () => string | undefined = () => undefined;
+
+/** Attach the chosen model to a /v2/diagrams/generate body. */
+function withModel<T extends object>(body: T): T & { model?: string } {
+  const model = modelRef();
+  return model ? { ...body, model } : body;
+}
 // Same idea for usage, so the post-generation upgrade nudge can read it.
 let usageServiceRef: UsageService | undefined;
 // Show the soft upgrade nudge at most once per session (avoid nagging).
@@ -195,13 +203,13 @@ async function promptForProviderApiKey(
   apiKeyService: APIKeyService,
   provider: Provider
 ): Promise<string | undefined> {
-  const specs: Record<string, { title: string; prompt: string; placeholder: string; prefix?: string; minLen: number }> = {
-    [Provider.OpenAI]:    { title: "api.openai",    prompt: "Paste your OpenAI key · stored in vscode.secrets",        placeholder: "sk-…",      prefix: "sk-",     minLen: 20 },
-    [Provider.Anthropic]: { title: "api.anthropic", prompt: "Paste your Anthropic key · stored in vscode.secrets",     placeholder: "sk-ant-…",  prefix: "sk-ant-", minLen: 20 },
-    [Provider.Google]:    { title: "api.google",    prompt: "Paste your Google (Gemini) key · stored in vscode.secrets", placeholder: "AIza…",   prefix: "AIza",    minLen: 20 },
-    [Provider.FlowCraft]: { title: "api.flowcraft", prompt: "Paste your FlowCraft token · stored in vscode.secrets",   placeholder: "fc_…",      prefix: "fc_",     minLen: 10 },
+  const spec = {
+    title: "api.openrouter",
+    prompt: "Paste your OpenRouter key (openrouter.ai/keys) · stored in vscode.secrets",
+    placeholder: "sk-or-…",
+    prefix: "sk-or-",
+    minLen: 20,
   };
-  const spec = specs[provider] ?? { title: `api.${provider}`, prompt: `Enter your ${provider} API key`, placeholder: "key…", minLen: 10 };
 
   const apiKey = await vscode.window.showInputBox({
     title: `FlowCraft · ${spec.title}`,
@@ -211,7 +219,7 @@ async function promptForProviderApiKey(
     ignoreFocusOut: true,
     validateInput: (value: string) => {
       if (!value) return "Key is required";
-      if (spec.prefix && !value.startsWith(spec.prefix)) return `Expected prefix "${spec.prefix}"`;
+      if (!value.startsWith(spec.prefix)) return `Expected prefix "${spec.prefix}" — create a key at openrouter.ai/keys`;
       if (value.length < spec.minLen) return "Key looks too short";
       return null;
     },
@@ -240,29 +248,46 @@ function showApiKeyError(provider: string): void {
     });
 }
 
-/** Collapse verbose upstream errors (litellm / openai / anthropic) into a short toast. */
+/** Collapse verbose upstream errors (OpenRouter / provider) into a short toast. */
 function humanizeError(raw: string): { title: string; detail?: string; action?: "billing" | "settings" } {
   const msg = (raw || "").toLowerCase();
-  if (msg.includes("flowcraft-issued keys are no longer accepted")) {
+  if (msg.includes("only openrouter api keys") || msg.includes("invalid openrouter api key format")) {
     return {
-      title: "Bring your own API key",
-      detail: "FlowCraft no longer offers free generations. Open settings to add your OpenAI, Anthropic, or Google API key.",
+      title: "OpenRouter key required",
+      detail: "FlowCraft now uses OpenRouter for every model. Create a key at openrouter.ai/keys (starts sk-or-) and add it in settings.",
       action: "settings",
     };
   }
-  if (msg.includes("ratelimiterror") || msg.includes("rate limit") || msg.includes("exceeded your current quota") || msg.includes("insufficient_quota")) {
+  if (msg.includes("flowcraft-issued keys are no longer accepted")) {
     return {
-      title: "Provider quota exceeded",
-      detail: "Your API key has hit its rate limit or quota. Check your billing, then retry.",
+      title: "Bring your own API key",
+      detail: "FlowCraft no longer offers free generations. Open settings to add your OpenRouter API key (openrouter.ai/keys).",
+      action: "settings",
+    };
+  }
+  if (msg.includes("402") || msg.includes("insufficient credits") || msg.includes("requires more credits")) {
+    return {
+      title: "Out of OpenRouter credits",
+      detail: "Add credits at openrouter.ai/credits, then retry.",
+      action: "billing",
+    };
+  }
+  if (msg.includes("ratelimiterror") || msg.includes("rate limit") || msg.includes("429") || msg.includes("exceeded your current quota") || msg.includes("insufficient_quota")) {
+    return {
+      title: "Rate limit or quota exceeded",
+      detail: "Your OpenRouter key (or the upstream model) hit its rate limit or spend cap. Check openrouter.ai/activity, then retry.",
       action: "billing",
     };
   }
   if (msg.includes("authenticationerror") || msg.includes("invalid api key") || msg.includes("incorrect api key") || msg.includes("401")) {
     return {
       title: "Invalid API key",
-      detail: "The stored key was rejected by the provider. Open settings to re-enter it.",
+      detail: "OpenRouter rejected the stored key. Open settings to re-enter it.",
       action: "settings",
     };
+  }
+  if (msg.includes("no endpoints found") || msg.includes("is not a valid model") || msg.includes("model not found")) {
+    return { title: "Model unavailable", detail: "OpenRouter doesn't offer that model slug. Pick another model in settings.", action: "settings" };
   }
   if (msg.includes("403") || msg.includes("permission")) {
     return { title: "Key lacks permission", detail: "Your key doesn't have access to the requested model." , action: "settings" };
@@ -271,14 +296,15 @@ function humanizeError(raw: string): { title: string; detail?: string; action?: 
     return { title: "Network error", detail: "FlowCraft couldn't reach the API. Check your connection and retry." };
   }
   // Fallback: strip wrappers like "Failed to generate diagram: litellm.XxxError:"
-  const cleaned = raw.replace(/^(failed to generate diagram:\s*)?(litellm\.[A-Za-z]+Error:\s*)?/i, "").trim();
+  const cleaned = raw.replace(/^(failed to generate diagram:\s*)?/i, "").trim();
   return { title: "Generation failed", detail: cleaned.slice(0, 180) };
 }
 
 /** Bucket a raw error message into a coarse, non-identifying kind for telemetry. */
 function classifyErrorKind(raw: string): string {
   const msg = (raw || "").toLowerCase();
-  if (msg.includes("flowcraft-issued keys are no longer accepted")) return "byok_required";
+  if (msg.includes("flowcraft-issued keys are no longer accepted") || msg.includes("only openrouter api keys")) return "byok_required";
+  if (msg.includes("402") || msg.includes("insufficient credits")) return "credits";
   if (msg.includes("ratelimiterror") || msg.includes("rate limit") || msg.includes("quota")) return "quota";
   if (msg.includes("authenticationerror") || msg.includes("invalid api key") || msg.includes("incorrect api key") || msg.includes("401")) return "auth";
   if (msg.includes("403") || msg.includes("permission")) return "permission";
@@ -363,7 +389,20 @@ export async function activate(context: vscode.ExtensionContext) {
   // Initialize Core Services
   const stateManager = new StateManager(context);
   const apiKeyService = new APIKeyService(context);
-  await apiKeyService.migrateOldKeys(); // Migrate legacy keys
+  const hadLegacyKeys = await apiKeyService.migrateOldKeys(); // Drop pre-OpenRouter keys
+  modelRef = () => stateManager.getSetting("providerModels")?.[Provider.OpenRouter];
+  if (hadLegacyKeys) {
+    void vscode.window
+      .showWarningMessage(
+        "FlowCraft now runs every model through OpenRouter. Your old OpenAI / Anthropic / Google key was removed — add one OpenRouter key (sk-or-…) to keep generating.",
+        "Add OpenRouter key",
+        "Get a key"
+      )
+      .then((choice) => {
+        if (choice === "Add OpenRouter key") void vscode.commands.executeCommand("flowcraft.setupApiKey");
+        else if (choice === "Get a key") void vscode.env.openExternal(vscode.Uri.parse("https://openrouter.ai/keys"));
+      });
+  }
 
   const apiBaseUrl = process.env.FLOWCRAFT_API_URL || FLOWCRAFT_API_URL;
   const apiClient = new FlowCraftClient({
@@ -511,7 +550,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const response = await fetch(`${flowCraftApiUrl}/v2/diagrams/generate`, {
             method: "POST",
             headers: buildGenerateHeaders(auth),
-            body: JSON.stringify(opts.body),
+            body: JSON.stringify(withModel(opts.body)),
           });
           const data: any = await response.json();
           progress.report({ increment: 70, message: "rendering…" });
@@ -757,15 +796,11 @@ export async function activate(context: vscode.ExtensionContext) {
     async () => {
       type ResetItem = vscode.QuickPickItem & { value: "all" | Provider };
       const items: ResetItem[] = [
-        { label: "$(trash) All providers", description: "clear every stored key", value: "all" },
-        { label: "OpenAI",    value: Provider.OpenAI },
-        { label: "Anthropic", value: Provider.Anthropic },
-        { label: "Google",    value: Provider.Google },
-        { label: "FlowCraft", value: Provider.FlowCraft },
+        { label: "$(trash) OpenRouter key", description: "clear the stored key", value: Provider.OpenRouter },
       ];
       const picked = await vscode.window.showQuickPick(items, {
         title: "FlowCraft · reset API key",
-        placeHolder: "Which provider key would you like to clear?",
+        placeHolder: "Clear your stored OpenRouter key?",
       });
       if (!picked) return;
 
@@ -775,12 +810,12 @@ export async function activate(context: vscode.ExtensionContext) {
       if (picked.value === "all") {
         await apiKeyService.clearAll();
         vscode.window.showInformationMessage(
-          "All FlowCraft provider keys have been cleared. You will be prompted on next use."
+          "Your OpenRouter key has been cleared. You will be prompted on next use."
         );
       } else {
         await apiKeyService.delete(picked.value);
         vscode.window.showInformationMessage(
-          `${picked.value} API key has been cleared. You will be prompted on next use.`
+          "Your OpenRouter key has been cleared. You will be prompted on next use."
         );
       }
       await refreshHasApiKeyContext(apiKeyService, stateManager);
@@ -790,20 +825,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let setupApiKeyCommand = vscode.commands.registerCommand(
     "flowcraft.setupApiKey",
     async () => {
-      type ProviderItem = vscode.QuickPickItem & { value: Provider };
-      const items: ProviderItem[] = [
-        { label: "OpenAI", description: "GPT-4 / GPT-3.5 · key starts sk-", value: Provider.OpenAI },
-        { label: "Anthropic", description: "Claude · key starts sk-ant-", value: Provider.Anthropic },
-        { label: "Google", description: "Gemini · key starts AIza", value: Provider.Google },
-        { label: "FlowCraft", description: "FlowCraft token · starts fc_", value: Provider.FlowCraft },
-      ];
-      const picked = await vscode.window.showQuickPick(items, {
-        title: "FlowCraft · set up your AI provider",
-        placeHolder: "Choose the provider whose API key you'll use (BYOK)",
-      });
-      if (!picked) {
-        return;
-      }
+      const picked = { value: Provider.OpenRouter };
       stateManager.setSetting("defaultProvider", picked.value);
       const key = await promptForProviderApiKey(apiKeyService, picked.value);
       if (!key) {
@@ -811,7 +833,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       await refreshHasApiKeyContext(apiKeyService, stateManager);
       const choice = await vscode.window.showInformationMessage(
-        `FlowCraft: ${picked.value} key saved — you're ready to generate diagrams.`,
+        "FlowCraft: OpenRouter key saved — you're ready to generate diagrams.",
         "Generate a diagram"
       );
       if (choice === "Generate a diagram") {
@@ -1321,7 +1343,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 {
                   method: "POST",
                   headers: buildGenerateHeaders(auth),
-                  body: JSON.stringify(body),
+                  body: JSON.stringify(withModel(body)),
                 }
               );
 
@@ -1371,7 +1393,7 @@ export async function activate(context: vscode.ExtensionContext) {
               });
               const friendly = humanizeError(rawMessage);
               const actions = friendly.action === "billing"
-                ? ["Open Billing", "Switch Provider", "Retry"]
+                ? ["Open Billing", "Change Model", "Retry"]
                 : friendly.action === "settings"
                 ? ["Open Settings", "Retry"]
                 : ["Retry", "Open Settings"];
@@ -1385,17 +1407,10 @@ export async function activate(context: vscode.ExtensionContext) {
                     vscode.commands.executeCommand("flowcraft.openGenerationView");
                   } else if (choice === "Open Settings") {
                     vscode.commands.executeCommand("flowcraft.openSettings");
-                  } else if (choice === "Switch Provider") {
+                  } else if (choice === "Change Model") {
                     vscode.commands.executeCommand("flowcraft.openSettings");
                   } else if (choice === "Open Billing") {
-                    const prov = stateManager.getSetting("defaultProvider");
-                    const billing: Record<string, string> = {
-                      openai: "https://platform.openai.com/account/billing",
-                      anthropic: "https://console.anthropic.com/settings/billing",
-                      google: "https://aistudio.google.com/app/apikey",
-                      flowcraft: "https://flowcraft.app/dashboard/billing",
-                    };
-                    vscode.env.openExternal(vscode.Uri.parse(billing[prov] || "https://flowcraft.app"));
+                    vscode.env.openExternal(vscode.Uri.parse("https://openrouter.ai/credits"));
                   }
                 });
               console.error("Error generating diagram:", error);
@@ -1650,11 +1665,11 @@ export async function activate(context: vscode.ExtensionContext) {
             const response = await fetch(`${apiUrl}/v2/diagrams/generate`, {
               method: "POST",
               headers: buildGenerateHeaders(auth),
-              body: JSON.stringify({
+              body: JSON.stringify(withModel({
                 title: "Inserted diagram",
                 description: prompt,
                 type: "flowchart",
-              }),
+              })),
             });
             const data: any = await response.json();
             const code = data?.response?.mermaid_code;

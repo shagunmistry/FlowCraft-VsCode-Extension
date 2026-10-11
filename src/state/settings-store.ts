@@ -122,5 +122,12 @@ export class SettingsStore {
       ...DEFAULT_SETTINGS,
       ...data
     };
+    // Settings saved by pre-OpenRouter versions pointed at openai/anthropic/...
+    // and held per-provider bare model ids. OpenRouter is the only provider now;
+    // keep only a model that is already an OpenRouter slug.
+    this.settings.defaultProvider = Provider.OpenRouter;
+    const saved = (data?.providerModels ?? {})[Provider.OpenRouter];
+    this.settings.providerModels =
+      typeof saved === 'string' && saved.includes('/') ? { [Provider.OpenRouter]: saved } : {};
   }
 }

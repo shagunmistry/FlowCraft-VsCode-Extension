@@ -4,6 +4,19 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.10.0] - 2026-10-11
+
+### Changed
+- **One key for every model: FlowCraft now runs on OpenRouter.** Instead of separate OpenAI, Anthropic and Google keys, you add a single OpenRouter key (starts with `sk-or-`, create one at [openrouter.ai/keys](https://openrouter.ai/keys)) and it works with Claude, GPT, Gemini and more.
+- **Model picker is now a model slug.** Settings has a single **Model** field with suggestions (for example `anthropic/claude-sonnet-5.5`); type any slug from [openrouter.ai/models](https://openrouter.ai/models), or leave it empty to let FlowCraft choose.
+- The settings screen, key prompt, "Set Up API Key" command and Welcome screen now only mention OpenRouter. Out-of-credits and rate-limit errors point you to your OpenRouter account.
+
+### Fixed
+- Your chosen model is now sent on every generation, including right-click "Visualize this" and "Insert diagram here" (previously only some paths honored it).
+
+### Action required
+- **Re-enter your key once.** Existing OpenAI, Anthropic, Google and FlowCraft keys are removed on first launch because they are no longer accepted. FlowCraft shows a one-time prompt to add your OpenRouter key.
+
 ## [2.9.1] - 2026-10-10
 
 ### Changed

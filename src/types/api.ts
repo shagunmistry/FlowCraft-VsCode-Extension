@@ -63,9 +63,7 @@ export interface AuthHeaders {
   'Content-Type': string;
   'Authorization'?: string;
   'X-API-Key'?: string;
-  'X-OpenAI-Key'?: string;
-  'X-Anthropic-Key'?: string;
-  'X-Google-Key'?: string;
+  'X-api-key'?: string;
 }
 
 export interface RequestOptions {
@@ -106,37 +104,20 @@ export interface ProviderInfo {
 }
 
 export const PROVIDER_INFO: Record<Provider, ProviderInfo> = {
-  [Provider.OpenAI]: {
-    provider: Provider.OpenAI,
-    displayName: 'OpenAI',
+  [Provider.OpenRouter]: {
+    provider: Provider.OpenRouter,
+    displayName: 'OpenRouter',
     requiresApiKey: true,
-    supportedModels: ['gpt-6.1-sol'],
-    defaultModel: 'gpt-6.1-sol',
+    // Curated suggestions; any OpenRouter slug (https://openrouter.ai/models) is accepted.
+    supportedModels: [
+      'anthropic/claude-sonnet-5.5',
+      'anthropic/claude-opus-5.5',
+      'anthropic/claude-haiku-5.5',
+      'openai/gpt-6.1-sol',
+      'google/gemini-3.8-flash'
+    ],
+    defaultModel: 'anthropic/claude-sonnet-5.5',
     features: ['diagrams', 'infographics']
-  },
-  [Provider.Anthropic]: {
-    provider: Provider.Anthropic,
-    displayName: 'Anthropic (Claude)',
-    requiresApiKey: true,
-    supportedModels: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
-    defaultModel: 'claude-sonnet-5-5',
-    features: ['diagrams', 'infographics']
-  },
-  [Provider.Google]: {
-    provider: Provider.Google,
-    displayName: 'Google (Gemini)',
-    requiresApiKey: true,
-    supportedModels: ['gemini-3.8-flash'],
-    defaultModel: 'gemini-3.8-flash',
-    features: ['diagrams']
-  },
-  [Provider.FlowCraft]: {
-    provider: Provider.FlowCraft,
-    displayName: 'FlowCraft API',
-    requiresApiKey: true,
-    supportedModels: ['flowcraft-default'],
-    defaultModel: 'flowcraft-default',
-    features: ['diagrams', 'infographics', 'illustrations', 'images']
   }
 };
 

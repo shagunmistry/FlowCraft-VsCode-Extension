@@ -1,16 +1,18 @@
 import { postMessage, onMessage } from '../shared/utils/messaging.js';
 import { getById, queryAll } from '../shared/utils/dom.js';
 
-const PROVIDERS = ['openai', 'anthropic', 'google', 'flowcraft'];
+const PROVIDERS = ['openrouter'];
 
-// Curated model lists per provider — mirrors PROVIDER_INFO in src/types/api.ts.
-// Keep in sync when the TypeScript list changes.
-const MODELS_BY_PROVIDER = {
-  openai: ['gpt-6.1-sol'],
-  anthropic: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
-  google: ['gemini-3.8-flash'],
-  flowcraft: ['flowcraft-default']
-};
+// Suggested OpenRouter slugs — mirrors PROVIDER_INFO in src/types/api.ts.
+// Any slug is accepted; keep in sync when the TypeScript list changes.
+const MODEL_SUGGESTIONS = [
+  'anthropic/claude-sonnet-5.5',
+  'anthropic/claude-opus-5.5',
+  'anthropic/claude-haiku-5.5',
+  'openai/gpt-6.1-sol',
+  'google/gemini-3.8-flash'
+];
+const MODEL_SLUG_RE = /^[\w.-]+\/[\w.:-]+$/;
 
 let currentSettings = {};
 let currentProviders = {};
@@ -22,12 +24,8 @@ let keysRevealed = false;
 function validateKeyFormat(provider, key) {
   const k = (key || '').trim();
   switch (provider) {
-    case 'openai':
-      return k.startsWith('sk-');
-    case 'anthropic':
-      return k.startsWith('sk-ant-');
-    case 'google':
-      return k.length > 20;
+    case 'openrouter':
+      return k.startsWith('sk-or-');
     default:
       return k.length > 10;
   }
@@ -147,18 +145,22 @@ function save() {
   const btn = getById('save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-  const providerModels = { ...(currentSettings.providerModels || {}) };
-  PROVIDERS.forEach(p => {
-    const sel = getById(`model-${p}`);
-    if (!sel) return;
-    const v = sel.value;
-    if (!v) delete providerModels[p];
-    else providerModels[p] = v;
-  });
+  const providerModels = {};
+  const modelInput = getById('model-openrouter');
+  const model = modelInput ? modelInput.value.trim() : '';
+  if (model) {
+    if (!MODEL_SLUG_RE.test(model)) {
+      const foot = getById('foot-status');
+      if (foot) { foot.textContent = 'Model must look like provider/model-name'; foot.className = 'st-foot-status err'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; }
+      return;
+    }
+    providerModels.openrouter = model;
+  }
 
   const newSettings = {
     ...currentSettings,
-    defaultProvider:     getById('default-provider').value,
+    defaultProvider:     'openrouter',
     defaultDiagramType:  getById('default-type').value,
     defaultColorPalette: getById('default-palette').value,
     defaultComplexity:   getById('default-complexity').value,
@@ -225,7 +227,6 @@ function render() {
     else            setStatus(provider, '',   'Not connected');
   });
 
-  setSelect('default-provider',   currentSettings.defaultProvider);
   setSelect('default-type',       currentSettings.defaultDiagramType);
   setSelect('default-palette',    currentSettings.defaultColorPalette);
   setSelect('default-complexity', currentSettings.defaultComplexity);
@@ -237,25 +238,16 @@ function render() {
 }
 
 function renderModelSelects() {
-  const chosen = currentSettings.providerModels || {};
-  PROVIDERS.forEach(p => {
-    const sel = getById(`model-${p}`);
-    if (!sel) return;
-    const models = MODELS_BY_PROVIDER[p] || [];
-    // Build: a "default" option (sends no override), then curated models.
-    sel.innerHTML = '';
-    const defOpt = document.createElement('option');
-    defOpt.value = '';
-    defOpt.textContent = 'Default (recommended)';
-    sel.appendChild(defOpt);
-    models.forEach(m => {
+  const list = getById('model-suggestions');
+  if (list && !list.children.length) {
+    MODEL_SUGGESTIONS.forEach(m => {
       const o = document.createElement('option');
       o.value = m;
-      o.textContent = m;
-      sel.appendChild(o);
+      list.appendChild(o);
     });
-    sel.value = chosen[p] || '';
-  });
+  }
+  const input = getById('model-openrouter');
+  if (input) input.value = (currentSettings.providerModels || {}).openrouter || '';
 }
 
 function setStatus(provider, state, text) {

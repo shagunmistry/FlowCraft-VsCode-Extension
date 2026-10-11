@@ -13,9 +13,7 @@ const ACTIONS = [
 // Provider key-page URLs are injected by freeTasteState; fall back to stable
 // defaults if the message hasn't arrived yet.
 let PROVIDER_LINKS = {
-  openai: 'https://platform.openai.com/api-keys',
-  anthropic: 'https://console.anthropic.com/settings/keys',
-  google: 'https://aistudio.google.com/app/apikey',
+  openrouter: 'https://openrouter.ai/keys',
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,7 +47,7 @@ function wireFreeTaste() {
 
   getById('wc-upsell-add')?.addEventListener('click', () => postMessage('setupApiKey'));
 
-  for (const provider of ['openai', 'anthropic', 'google']) {
+  for (const provider of ['openrouter']) {
     getById(`wc-key-${provider}`)?.addEventListener('click', () => {
       postMessage('openKeyPage', { url: PROVIDER_LINKS[provider] });
     });
@@ -121,7 +119,7 @@ function renderAccount(account) {
   } else {
     status.textContent = 'Signed out';
     if (email) email.textContent = '';
-    if (hint) hint.textContent = 'Sign in to use your FlowCraft subscription instead of pasting a provider key.';
+    if (hint) hint.textContent = 'Sign in to use your FlowCraft subscription instead of pasting an OpenRouter key.';
     inBtn.hidden = false;
     outBtn.hidden = true;
   }

@@ -69,7 +69,6 @@ export class APIKeyService {
           method: "GET",
           headers: {
             "X-api-key": apiKey,
-            provider: provider.toLowerCase(),
           },
         }
       );
@@ -94,15 +93,24 @@ export class APIKeyService {
   }
 
   /**
-   * Migrate from old key format (if needed)
+   * Remove keys saved by pre-OpenRouter versions (OpenAI / Anthropic / Google /
+   * FlowCraft). They are not OpenRouter keys and the API now rejects them.
+   * Returns true when at least one was found, so the caller can tell the user
+   * once that they need to add an OpenRouter key.
    */
-  async migrateOldKeys(): Promise<void> {
-    // Migrate from old 'flowcraft.openai.key' to new format
-    const oldKey = await this.context.secrets.get("flowcraft.openai.key");
-    if (oldKey) {
-      await this.store(Provider.OpenAI, oldKey);
-      await this.context.secrets.delete("flowcraft.openai.key");
+  async migrateOldKeys(): Promise<boolean> {
+    let found = false;
+    const legacy = [
+      "flowcraft.openai.key",
+      ...["openai", "anthropic", "google", "flowcraft"].map((p) => `${this.KEY_PREFIX}${p}`),
+    ];
+    for (const name of legacy) {
+      if (await this.context.secrets.get(name)) {
+        found = true;
+        await this.context.secrets.delete(name);
+      }
     }
+    return found;
   }
 
   /**

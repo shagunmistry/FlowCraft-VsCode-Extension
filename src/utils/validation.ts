@@ -7,7 +7,7 @@ import { DiagramType, Provider } from '../types';
 /**
  * Validate API key format
  */
-export function validateApiKey(provider: Provider, apiKey: string): {
+export function validateApiKey(_provider: Provider, apiKey: string): {
   valid: boolean;
   error?: string;
 } {
@@ -15,36 +15,11 @@ export function validateApiKey(provider: Provider, apiKey: string): {
     return { valid: false, error: 'API key cannot be empty' };
   }
 
-  switch (provider) {
-    case Provider.OpenAI:
-      if (!apiKey.startsWith('sk-')) {
-        return { valid: false, error: 'OpenAI API key must start with "sk-"' };
-      }
-      if (apiKey.length < 20) {
-        return { valid: false, error: 'OpenAI API key is too short' };
-      }
-      break;
-
-    case Provider.Anthropic:
-      if (!apiKey.startsWith('sk-ant-')) {
-        return { valid: false, error: 'Anthropic API key must start with "sk-ant-"' };
-      }
-      if (apiKey.length < 20) {
-        return { valid: false, error: 'Anthropic API key is too short' };
-      }
-      break;
-
-    case Provider.Google:
-      if (apiKey.length < 20) {
-        return { valid: false, error: 'Google API key is too short' };
-      }
-      break;
-
-    case Provider.FlowCraft:
-      if (apiKey.length < 10) {
-        return { valid: false, error: 'FlowCraft API key is too short' };
-      }
-      break;
+  if (!apiKey.startsWith('sk-or-')) {
+    return { valid: false, error: 'OpenRouter API key must start with "sk-or-"' };
+  }
+  if (apiKey.length < 20) {
+    return { valid: false, error: 'OpenRouter API key is too short' };
   }
 
   return { valid: true };

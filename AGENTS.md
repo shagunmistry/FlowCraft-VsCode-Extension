@@ -4,6 +4,8 @@ Guidance for AI coding agents working in this repo. Full project guidance is in 
 
 ## Release rule (important)
 
+**Always bump the version as part of any change that touches the shipped extension, without waiting to be asked.** Do not leave it for "later" or for the user to remember; an unbumped change merges and silently never ships. If unsure of the size, use `patch` and say so.
+
 Pushes to `main` are deployed to the VS Code Marketplace automatically by `.github/workflows/publish.yml`, **but only when the push changes `"version"` in `package.json`**. A user-facing change merged without a version bump is never published.
 
 When you change `src/`, webview assets, `package.json` contributions, or the Marketplace README/CHANGELOG:

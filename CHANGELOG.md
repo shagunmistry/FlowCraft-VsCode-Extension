@@ -4,6 +4,14 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.10.1] - 2026-10-11
+
+### Added
+- Anonymous usage telemetry now also covers exporting a diagram, opening history, inserting a template, and signing out. While you are signed in, events are labelled with your FlowCraft account ID (never your email, API key, prompts or diagrams) so we can understand usage across the extension and the web app.
+
+### Notes
+- Telemetry is still opt-out: it respects the telemetry toggle in FlowCraft Settings and VS Code's global telemetry switch.
+
 ## [2.10.0] - 2026-10-11
 
 ### Changed

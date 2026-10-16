@@ -46,7 +46,9 @@ export type TelemetryEventName =
   | "history_opened"
   | "template_inserted"
   | "onboarding_shown"
-  | "try_free_clicked";
+  | "try_free_clicked"
+  | "statusbar_clicked"
+  | "codelens_clicked";
 
 /**
  * Supabase user id (the JWT `sub` claim) from an access token, decoded locally

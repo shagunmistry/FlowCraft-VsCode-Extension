@@ -6,7 +6,7 @@ suite("buildEmbedSnippet", () => {
     const out = buildEmbedSnippet("My Flow", "https://flowcraft.app/shared/abc", "https://cdn/x.png");
     assert.strictEqual(
       out,
-      "[![My Flow](https://cdn/x.png)](https://flowcraft.app/shared/abc)\n\n⚡ [Made with FlowCraft](https://flowcraft.app)"
+      "[![My Flow](https://cdn/x.png)](https://flowcraft.app/shared/abc)\n\n⚡ [Made with FlowCraft](https://flowcraft.app/?utm_source=vscode&utm_medium=extension&utm_campaign=embed_badge)"
     );
   });
 
@@ -14,7 +14,7 @@ suite("buildEmbedSnippet", () => {
     const out = buildEmbedSnippet("My Flow", "https://flowcraft.app/shared/abc");
     assert.strictEqual(
       out,
-      "[My Flow](https://flowcraft.app/shared/abc)\n\n⚡ [Made with FlowCraft](https://flowcraft.app)"
+      "[My Flow](https://flowcraft.app/shared/abc)\n\n⚡ [Made with FlowCraft](https://flowcraft.app/?utm_source=vscode&utm_medium=extension&utm_campaign=embed_badge)"
     );
   });
 

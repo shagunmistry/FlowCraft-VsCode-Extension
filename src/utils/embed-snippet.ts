@@ -1,4 +1,6 @@
-const BADGE = "⚡ [Made with FlowCraft](https://flowcraft.app)";
+import { withUtm } from "./links";
+
+const BADGE = `⚡ [Made with FlowCraft](${withUtm("https://flowcraft.app/", "embed_badge")})`;
 
 function escapeAlt(title: string): string {
   const t = title.trim() || "Diagram";

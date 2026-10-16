@@ -15,6 +15,7 @@
 import * as vscode from "vscode";
 import { getNonce, getThemeKind } from "../utils/webview-utils";
 import { getLogger } from "../utils/logger";
+import { openFlowcraft } from "../utils/links";
 import { Diagram, DiagramCategory } from "../types";
 
 const RENDER_TIMEOUT_MS = 20000;
@@ -353,7 +354,7 @@ export class RenderService implements vscode.Disposable {
       case "openWeb": {
         const url = this.webUrlFor?.(diagram);
         if (url) {
-          await vscode.env.openExternal(vscode.Uri.parse(url));
+          await openFlowcraft(url, "viewer_open_web");
         } else {
           // No web URL — almost always because the diagram was created locally
           // and never synced. Offer the path that fixes it instead of a dead-end toast.

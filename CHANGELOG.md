@@ -4,6 +4,15 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.12.0] - 2026-10-16
+
+### Added
+- A FlowCraft status bar item ("Try free" before you add a key, "Visualize" after) so the extension is easy to find. Turn it off with `flowcraft.statusBar.enabled`.
+- A "Visualize this file" CodeLens at the top of TypeScript, JavaScript, Python, Java, Go, Ruby and C# files. Turn it off with `flowcraft.codeLens.enabled`.
+
+### Changed
+- Links the extension opens on flowcraft.app now carry anonymous campaign tags (utm_source=vscode) so we can tell which features bring people to the site. No personal data is added.
+
 ## [2.11.1] - 2026-10-16
 
 ### Added

@@ -23,6 +23,9 @@ import { buildFileContext, summarizeFolder } from "./utils/visualize-context";
 import { toApiType } from "./services/diagram-type-map";
 import { MermaidCodeLensProvider } from "./providers/mermaid-codelens";
 import { ExportService } from "./services/export-service";
+import { openFlowcraft } from "./utils/links";
+import { FlowCraftStatusBar, FREE_REMAINING_KEY } from "./ui/status-bar";
+import { VisualizeCodeLensProvider, VISUALIZE_LENS_LANGUAGES } from "./providers/visualize-codelens";
 import { ShareService } from "./services/share-service";
 import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
 import { FreeTasteService, FreeTasteQuotaError } from "./services/free-taste-service";
@@ -79,7 +82,7 @@ function maybeNudgeUpgrade(): void {
     .then((choice) => {
       if (choice === "See Premium") {
         telemetryRef?.track("upgrade_clicked");
-        vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_PRICING_URL));
+        void openFlowcraft(FLOWCRAFT_PRICING_URL, "pricing_toast");
       }
     });
 }
@@ -318,11 +321,11 @@ function classifyErrorKind(raw: string): string {
 /** Open the rendered diagram in the browser with a toast fallback. */
 function openDiagramResult(id: string): void {
   const url = `https://flowcraft.app/vscode/${id}`;
-  vscode.env.openExternal(vscode.Uri.parse(url));
+  void openFlowcraft(url, "diagram_ready");
   vscode.window
     .showInformationMessage("Diagram ready.", "Open Diagram", "Copy Link")
     .then((choice) => {
-      if (choice === "Open Diagram") vscode.env.openExternal(vscode.Uri.parse(url));
+      if (choice === "Open Diagram") void openFlowcraft(url, "diagram_ready");
       else if (choice === "Copy Link") vscode.env.clipboard.writeText(url);
     });
 }
@@ -518,7 +521,7 @@ export async function activate(context: vscode.ExtensionContext) {
       )
       .then((choice) => {
         if (choice === "Open on web") {
-          vscode.env.openExternal(vscode.Uri.parse(url));
+          void openFlowcraft(url, "diagram_preview_toast");
         } else if (choice === "Copy Link") {
           vscode.env.clipboard.writeText(url);
         }
@@ -640,7 +643,7 @@ export async function activate(context: vscode.ExtensionContext) {
       Promise.resolve(vscode.window.showInformationMessage(msg, ...actions)),
     showError: (msg) => void vscode.window.showErrorMessage(msg),
     track: (e, p) => telemetry.track(e as Parameters<typeof telemetry.track>[0], p as Parameters<typeof telemetry.track>[1]),
-    openExternal: (url) => void vscode.env.openExternal(vscode.Uri.parse(url)),
+    openExternal: (url) => void openFlowcraft(url, "share"),
     confirmFirstShare: async () => {
       const KEY = "flowcraft.share.confirmedPublic";
       if (context.globalState.get<boolean>(KEY)) { return true; }
@@ -749,6 +752,7 @@ export async function activate(context: vscode.ExtensionContext) {
         await renderService.view(diagram);
       }
       await context.globalState.update("flowcraft.freeRemaining", remaining);
+      void statusBar.refresh();
       welcomeProvider.postFreeRemaining(remaining);
       if (remaining <= 0) {
         welcomeProvider.postFreeExhausted();
@@ -818,6 +822,34 @@ export async function activate(context: vscode.ExtensionContext) {
       "flowcraft.runFreeTaste",
       (prompt: string, type: string) => runFreeTaste(prompt, type ?? "flowchart")
     )
+  );
+
+  const statusBar = new FlowCraftStatusBar({
+    hasApiKey: () => apiKeyService.has(stateManager.getSetting("defaultProvider")),
+    getFreeRemaining: () => {
+      const n = context.globalState.get<number>(FREE_REMAINING_KEY);
+      return typeof n === "number" ? n : undefined;
+    },
+    track: (e, p) => telemetry.track(e, p),
+  });
+  context.subscriptions.push(
+    statusBar,
+    stateManager.onStateChange(() => void statusBar.refresh()),
+    authService.onDidChangeSession(() => void statusBar.refresh()),
+    vscode.window.onDidChangeWindowState((s) => { if (s.focused) { void statusBar.refresh(); } })
+  );
+
+  const visualizeLens = new VisualizeCodeLensProvider();
+  context.subscriptions.push(
+    visualizeLens,
+    vscode.languages.registerCodeLensProvider(
+      VISUALIZE_LENS_LANGUAGES.map((language) => ({ language })),
+      visualizeLens
+    ),
+    vscode.commands.registerCommand("flowcraft.codeLensVisualize", (uri?: vscode.Uri) => {
+      telemetry.track("codelens_clicked");
+      return vscode.commands.executeCommand("flowcraft.visualizeThis", uri);
+    })
   );
 
   const settingsProvider = new SettingsViewProvider(
@@ -1501,7 +1533,7 @@ export async function activate(context: vscode.ExtensionContext) {
       });
       if (selection) {
         const diagramUrl = `https://flowcraft.app/vscode/${selection.id}`;
-        vscode.env.openExternal(vscode.Uri.parse(diagramUrl));
+        void openFlowcraft(diagramUrl, "history_pick");
       }
     }
   );

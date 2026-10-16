@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth-service';
 import { EntitlementService } from '../services/entitlement-service';
 import { TelemetryService } from '../services/telemetry-service';
 import { FLOWCRAFT_PRICING_URL, FLOWCRAFT_BILLING_URL } from '../services/premium-gate';
+import { openFlowcraft } from '../utils/links';
 import { Settings, Provider, Entitlement } from '../types';
 import { setupMessageListener, getNonce, getWebviewUri } from '../utils/webview-utils';
 
@@ -48,8 +49,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       resetApiKeys: async () => { await vscode.commands.executeCommand('flowcraft.resetApiKey'); },
       signIn:  async () => { await vscode.commands.executeCommand('flowcraft.signIn'); },
       signOut: async () => { await vscode.commands.executeCommand('flowcraft.signOut'); },
-      upgrade: async () => { await vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_PRICING_URL)); },
-      manageSubscription: async () => { await vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_BILLING_URL)); }
+      upgrade: async () => { await openFlowcraft(FLOWCRAFT_PRICING_URL, 'settings_upgrade'); },
+      manageSubscription: async () => { await openFlowcraft(FLOWCRAFT_BILLING_URL, 'settings_billing'); }
     });
 
     // Update on state changes

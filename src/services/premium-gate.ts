@@ -16,6 +16,7 @@ import { EntitlementService } from "./entitlement-service";
 import { AuthService } from "./auth-service";
 import { TelemetryService } from "./telemetry-service";
 import { PremiumFeature } from "../types";
+import { openFlowcraft } from "../utils/links";
 
 export const FLOWCRAFT_PRICING_URL = "https://flowcraft.app/dashboard/pricing";
 export const FLOWCRAFT_BILLING_URL = "https://flowcraft.app/dashboard/settings";
@@ -61,7 +62,7 @@ export async function requirePremium(
 
   if (choice === UPGRADE) {
     deps.telemetry?.track("upgrade_clicked");
-    await vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_PRICING_URL));
+    await openFlowcraft(FLOWCRAFT_PRICING_URL, "pricing_gate");
   } else if (choice === SIGN_IN) {
     await vscode.commands.executeCommand("flowcraft.signIn");
   }

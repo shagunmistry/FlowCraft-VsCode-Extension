@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth-service';
 import { APIKeyService } from '../services/api-key-service';
 import { TelemetryService } from '../services/telemetry-service';
 import { FLOWCRAFT_PRICING_URL } from '../services/premium-gate';
+import { openFlowcraft } from '../utils/links';
 import { PROVIDER_KEY_PAGE } from '../utils/provider-links';
 import { setupMessageListener, getNonce, getWebviewUri } from '../utils/webview-utils';
 
@@ -63,7 +64,7 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
       syncUsage: async () => { await vscode.commands.executeCommand('flowcraft.syncUsage'); },
       upgrade: async () => {
         this.telemetry.track('upgrade_link_clicked');
-        await vscode.env.openExternal(vscode.Uri.parse(FLOWCRAFT_PRICING_URL));
+        await openFlowcraft(FLOWCRAFT_PRICING_URL, 'welcome_upgrade');
       },
       checkUsage: async () => this.sendUsageData(),
       checkFreeTaste: async () => this.sendFreeTasteData(),
@@ -76,7 +77,7 @@ export class WelcomeViewProvider implements vscode.WebviewViewProvider {
       },
       openKeyPage: async (data: { url?: string } | undefined) => {
         if (data?.url) {
-          await vscode.env.openExternal(vscode.Uri.parse(data.url));
+          await openFlowcraft(data.url, 'welcome_key_page');
         }
       },
       setupApiKey: async () => { await vscode.commands.executeCommand('flowcraft.setupApiKey'); },

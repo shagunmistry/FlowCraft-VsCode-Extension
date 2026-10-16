@@ -12,7 +12,7 @@
     "color": "#1E1B4B",
     "theme": "dark"
   },
-  "version": "2.11.1",
+  "version": "2.12.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -285,6 +285,16 @@
     "configuration": {
       "title": "FlowCraft",
       "properties": {
+        "flowcraft.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a FlowCraft entry in the status bar ('Try free' or 'Visualize')."
+        },
+        "flowcraft.codeLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a 'Visualize this file' CodeLens at the top of source files."
+        },
         "flowcraft.api.provider": {
           "type": "string",
           "enum": [

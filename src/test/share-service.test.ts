@@ -59,7 +59,7 @@ suite("ShareService", () => {
     const deps = baseDeps({ copyToClipboard: async (t: string) => { copied = t; } });
     await new ShareService(deps).share(baseDiagram());
     assert.ok(copied.includes("https://flowcraft.app/shared/x"));
-    assert.ok(copied.includes("⚡ [Made with FlowCraft](https://flowcraft.app)"));
+    assert.ok(copied.includes("⚡ [Made with FlowCraft](https://flowcraft.app/?utm_source=vscode&utm_medium=extension&utm_campaign=embed_badge)"));
   });
 
   test("aborts when sign-in cancelled", async () => {

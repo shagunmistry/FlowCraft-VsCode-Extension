@@ -13,6 +13,7 @@
 
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
+import { openFlowcraft } from "../utils/links";
 import { AuthService, AuthSession } from "../services/auth-service";
 
 const NONCE_TTL_MS = 5 * 60 * 1000;
@@ -130,7 +131,7 @@ export async function signIn(config: AuthFlowConfig): Promise<AuthSession | unde
     pending.set(state, { createdAt: Date.now(), resolve, reject, timer });
   });
 
-  await vscode.env.openExternal(vscode.Uri.parse(startUrl));
+  await openFlowcraft(startUrl, "sign_in");
 
   try {
     return await vscode.window.withProgress(

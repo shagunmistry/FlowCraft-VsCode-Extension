@@ -26,6 +26,7 @@ import { ExportService } from "./services/export-service";
 import { ShareService } from "./services/share-service";
 import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
 import { FreeTasteService, FreeTasteQuotaError } from "./services/free-taste-service";
+import { shouldShowFirstRunNotice, FIRST_RUN_NOTICE_KEY } from "./services/first-run";
 import { solvePow } from "./utils/pow";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
@@ -780,6 +781,19 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }
   }
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("flowcraft.tryFree", async () => {
+      telemetry.track("try_free_clicked");
+      const prompt = await vscode.window.showInputBox({
+        title: "FlowCraft: try a free diagram (no API key needed)",
+        prompt: "Describe the diagram you want, e.g. user login flow with password reset",
+        placeHolder: "User signs up, verifies email, then lands on the dashboard",
+        ignoreFocusOut: true,
+      });
+      if (prompt) { await runFreeTaste(prompt, "flowchart"); }
+    })
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -1848,6 +1862,37 @@ export async function activate(context: vscode.ExtensionContext) {
     await context.globalState.update("flowcraft.onboarding.seen", true);
   } catch (err) {
     console.error("FlowCraft: onboarding walkthrough failed to open:", err);
+  }
+
+  // The walkthrough often opens unfocused, so also surface a one-time notice
+  // that leads with the free, no-key diagram.
+  try {
+    const freeRemaining = context.globalState.get<number>("flowcraft.freeRemaining");
+    if (
+      shouldShowFirstRunNotice({
+        noticeSeen: context.globalState.get<boolean>(FIRST_RUN_NOTICE_KEY) === true,
+        hasApiKey: hasKeyOnStartup,
+        freeRemaining: typeof freeRemaining === "number" ? freeRemaining : null,
+      })
+    ) {
+      await context.globalState.update(FIRST_RUN_NOTICE_KEY, true);
+      telemetry.track("onboarding_shown");
+      void vscode.window
+        .showInformationMessage(
+          "FlowCraft: turn a description into a diagram in seconds. Your first few are free, no API key needed.",
+          "Try free",
+          "Add my key"
+        )
+        .then((choice) => {
+          if (choice === "Try free") {
+            void vscode.commands.executeCommand("flowcraft.tryFree");
+          } else if (choice === "Add my key") {
+            void vscode.commands.executeCommand("flowcraft.setupApiKey");
+          }
+        });
+    }
+  } catch (err) {
+    console.error("FlowCraft: first-run notice failed:", err);
   }
 
   const chatHandler = vscode.chat.createChatParticipant(

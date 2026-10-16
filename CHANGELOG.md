@@ -4,6 +4,15 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.11.0] - 2026-10-16
+
+### Added
+- **Try a free diagram, no API key needed.** New command "FlowCraft: Try a Free Diagram" and a first step in the Get Started walkthrough. New installs also see a one-time notice offering "Try free" or "Add my key".
+- Anonymous telemetry for the two new first-run events (`onboarding_shown`, `try_free_clicked`).
+
+### Changed
+- The Get Started walkthrough now leads with the free diagram; adding your own OpenRouter key is the second step.
+
 ## [2.10.1] - 2026-10-11
 
 ### Added

@@ -12,7 +12,7 @@
     "color": "#1E1B4B",
     "theme": "dark"
   },
-  "version": "2.10.1",
+  "version": "2.11.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -178,6 +178,10 @@
         "command": "flowcraft.insertMermaidBlock",
         "title": "FlowCraft: Insert diagram here",
         "icon": "$(add)"
+      },
+      {
+        "command": "flowcraft.tryFree",
+        "title": "FlowCraft: Try a Free Diagram (no API key)"
       }
     ],
     "menus": {
@@ -229,11 +233,22 @@
       {
         "id": "flowcraftGettingStarted",
         "title": "Get Started with FlowCraft",
-        "description": "Add your AI provider key (BYOK) and generate your first diagram.",
+        "description": "Try a free diagram, then add your own key for unlimited use.",
         "steps": [
           {
+            "id": "tryFree",
+            "title": "Try a free diagram",
+            "description": "No API key needed for your first few diagrams.\n[Try a Free Diagram](command:flowcraft.tryFree)",
+            "media": {
+              "markdown": "media/walkthrough/step-try.md"
+            },
+            "completionEvents": [
+              "onCommand:flowcraft.tryFree"
+            ]
+          },
+          {
             "id": "addApiKey",
-            "title": "Add your API key (BYOK)",
+            "title": "Add your API key (unlimited)",
             "description": "FlowCraft uses your own AI provider key — nothing routes through FlowCraft's servers.\n[Set Up API Key](command:flowcraft.setupApiKey)",
             "media": {
               "markdown": "media/walkthrough/step-key.md"

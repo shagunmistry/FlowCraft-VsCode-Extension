@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { shouldShowFirstRunNotice } from "../services/first-run";
+import { shouldShowFirstRunNotice, shouldPromptAfterFreeTaste } from "../services/first-run";
 
 suite("first-run notice", () => {
   test("shows for a new keyless install", () => {
@@ -13,5 +13,12 @@ suite("first-run notice", () => {
   });
   test("hidden when the free quota is used up", () => {
     assert.ok(!shouldShowFirstRunNotice({ noticeSeen: false, hasApiKey: false, freeRemaining: 0 }));
+  });
+
+  test("post-taste prompt only when nearly out and signed out", () => {
+    assert.ok(shouldPromptAfterFreeTaste(1, false));
+    assert.ok(shouldPromptAfterFreeTaste(0, false));
+    assert.ok(!shouldPromptAfterFreeTaste(3, false));
+    assert.ok(!shouldPromptAfterFreeTaste(0, true));
   });
 });

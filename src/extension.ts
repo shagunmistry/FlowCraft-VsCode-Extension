@@ -26,7 +26,7 @@ import { ExportService } from "./services/export-service";
 import { ShareService } from "./services/share-service";
 import { Diagram, DiagramCategory, DiagramType, Provider } from "./types";
 import { FreeTasteService, FreeTasteQuotaError } from "./services/free-taste-service";
-import { shouldShowFirstRunNotice, FIRST_RUN_NOTICE_KEY } from "./services/first-run";
+import { shouldShowFirstRunNotice, shouldPromptAfterFreeTaste, FIRST_RUN_NOTICE_KEY } from "./services/first-run";
 import { solvePow } from "./utils/pow";
 
 const FLOWCRAFT_API_URL = "https://flowcraft-api-cb66lpneaq-ue.a.run.app";
@@ -752,6 +752,24 @@ export async function activate(context: vscode.ExtensionContext) {
       welcomeProvider.postFreeRemaining(remaining);
       if (remaining <= 0) {
         welcomeProvider.postFreeExhausted();
+      }
+      if (shouldPromptAfterFreeTaste(remaining, !!(await authService.getSession()))) {
+        telemetry.track("upgrade_prompt_shown");
+        void vscode.window
+          .showInformationMessage(
+            remaining > 0
+              ? "Enjoying FlowCraft? You have 1 free diagram left. Sign in to keep your diagrams, or add your own key for unlimited use."
+              : "That was your last free diagram. Sign in to keep your diagrams, or add your own key for unlimited use.",
+            "Sign in",
+            "Add my key"
+          )
+          .then((choice) => {
+            if (choice === "Sign in") {
+              void vscode.commands.executeCommand("flowcraft.signIn");
+            } else if (choice === "Add my key") {
+              void vscode.commands.executeCommand("flowcraft.setupApiKey");
+            }
+          });
       }
     } catch (err) {
       if (err instanceof FreeTasteQuotaError) {

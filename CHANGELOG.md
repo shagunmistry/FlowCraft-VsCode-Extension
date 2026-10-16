@@ -4,6 +4,11 @@ All notable changes to the "flowcraft" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [2.11.1] - 2026-10-16
+
+### Added
+- After a free diagram, if you are nearly out of free generations and signed out, FlowCraft offers to sign you in or add your own key.
+
 ## [2.11.0] - 2026-10-16
 
 ### Added

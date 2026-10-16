@@ -15,3 +15,8 @@ export function shouldShowFirstRunNotice(s: FirstRunState): boolean {
 }
 
 export const FIRST_RUN_NOTICE_KEY = "flowcraft.firstRunNotice.seen";
+
+/** After a free diagram, nudge toward sign-in/key only when the quota is nearly gone. */
+export function shouldPromptAfterFreeTaste(remaining: number, signedIn: boolean): boolean {
+  return !signedIn && remaining <= 1;
+}
